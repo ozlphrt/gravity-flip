@@ -184,10 +184,10 @@ export class SceneManager {
 
     const ctx = this.bgCanvas.getContext('2d')!;
 
-    // 1. Luminous radial gradient studio backdrop (premium dark grey)
+    // 1. Luminous radial gradient studio backdrop (premium darker slate grey)
     const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h));
-    grad.addColorStop(0, '#1c1f26'); // Premium matte dark grey center
-    grad.addColorStop(1, '#0e1014'); // Deep dark charcoal edges
+    grad.addColorStop(0, '#101216'); // Premium matte darker grey center
+    grad.addColorStop(1, '#060709'); // Deep dark charcoal edges
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
