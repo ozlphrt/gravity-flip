@@ -133,6 +133,27 @@ export class CubeRenderer {
     });
   }
 
+  /** Animate cube popping/disappearing (shrinks to 0) */
+  animatePop(cubeId: string): Promise<void> {
+    const mesh = this.meshes.get(cubeId);
+    if (!mesh) return Promise.resolve();
+
+    return new Promise(resolve => {
+      this.anim.add(
+        [1.0], [0.0], 220, Easings.easeOutExpo,
+        ([s]) => { mesh.scale.set(s, s, s); },
+        () => {
+          this.pivot.remove(mesh);
+          this.meshes.delete(cubeId);
+          mesh.geometry.dispose();
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          mats.forEach(m => m.dispose());
+          resolve();
+        }
+      );
+    });
+  }
+
   /** Glow pulse when locked into socket */
   animateLock(payload: LockPayload): void {
     const mesh = this.meshes.get(payload.cubeId);

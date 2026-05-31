@@ -8,6 +8,7 @@ import {
   applySwipeToOrientation, cloneMatrix
 } from '../core/GravitySystem';
 import { resolveSlides, previewSlides } from '../core/MovementResolver';
+import { resolveColorMatches } from '../core/MatchSystem';
 import { resolveSocketLocks, checkWinCondition } from '../core/SocketSystem';
 import { UndoSystem } from '../core/UndoSystem';
 import { loadLevel, LEVEL_ORDER } from '../levels/LevelLoader';
@@ -219,75 +220,106 @@ export class GameController {
     this.state.moveCount++;
     this.audio.play('slide');
 
-    // Wait for rotation, then animate slides simultaneously
+    // Wait for rotation, then resolve cascading slides and pop matches
     await rotPromise;
-    // Animate lanes in parallel, and stack slide sequentially within each lane for realism
-    if (slides.length > 0) {
-      const lanesMap = new Map<string, typeof slides>();
-      const axis = newGravity.axis;
-      const nonGravityAxes = (axis === 'x') ? ['y', 'z'] : (axis === 'y') ? ['x', 'z'] : ['x', 'y'];
 
-      for (const slide of slides) {
-        const key = `${slide.from[nonGravityAxes[0] as 'x' | 'y' | 'z']}_${slide.from[nonGravityAxes[1] as 'x' | 'y' | 'z']}`;
-        if (!lanesMap.has(key)) lanesMap.set(key, []);
-        lanesMap.get(key)!.push(slide);
-      }
+    let currentSlides = slides;
+    let currentLocks = locks;
 
-      const lanePromises = Array.from(lanesMap.entries()).map(async ([key, laneSlides]) => {
-        const [v1, v2] = key.split('_').map(Number);
-        
-        const leadSlide = laneSlides[0];
-        const leadCubeObj = this.state.cubes.get(leadSlide.cubeId)!;
-        const phys = COLOR_PHYSICS[leadCubeObj.color] ?? { durationMult: 1.0 };
-        // Heavier cubes inertia offset delay (heavier takes longer to build momentum and falls later!)
-        const weightDelay = (phys.durationMult - 0.65) * 110;
+    while (true) {
+      // 1. Animate current slide batch
+      if (currentSlides.length > 0) {
+        const lanesMap = new Map<string, typeof currentSlides>();
+        const axis = newGravity.axis;
+        const nonGravityAxes = (axis === 'x') ? ['y', 'z'] : (axis === 'y') ? ['x', 'z'] : ['x', 'y'];
 
-        // Immediate start with tight diagonal stagger + weight-based inertia + minor organic jitter
-        const laneStartDelay = (v1 + v2) * 20 + weightDelay + Math.random() * 12;
-        await new Promise(r => setTimeout(r, laneStartDelay));
+        for (const slide of currentSlides) {
+          const key = `${slide.from[nonGravityAxes[0] as 'x' | 'y' | 'z']}_${slide.from[nonGravityAxes[1] as 'x' | 'y' | 'z']}`;
+          if (!lanesMap.has(key)) lanesMap.set(key, []);
+          lanesMap.get(key)!.push(slide);
+        }
 
-        for (let i = 0; i < laneSlides.length; i++) {
-          const slide = laneSlides[i];
-          if (i > 0) {
-            // Small offset delay before the next stacked cube behind starts moving
-            await new Promise(r => setTimeout(r, 65));
+        const lanePromises = Array.from(lanesMap.entries()).map(async ([key, laneSlides]) => {
+          const [v1, v2] = key.split('_').map(Number);
+          
+          const leadSlide = laneSlides[0];
+          const leadCubeObj = this.state.cubes.get(leadSlide.cubeId)!;
+          const phys = COLOR_PHYSICS[leadCubeObj.color] ?? { durationMult: 1.0 };
+          const weightDelay = (phys.durationMult - 0.65) * 110;
+
+          // Spatial diagonal stagger + weight-based inertia + minor organic jitter
+          const laneStartDelay = (v1 + v2) * 20 + weightDelay + Math.random() * 12;
+          await new Promise(r => setTimeout(r, laneStartDelay));
+
+          for (let i = 0; i < laneSlides.length; i++) {
+            const slide = laneSlides[i];
+            if (i > 0) {
+              await new Promise(r => setTimeout(r, 65));
+            }
+            await this.cubeRenderer.animateSlide(slide);
+            
+            const cubeObj = this.state.cubes.get(slide.cubeId)!;
+            this.audio.play('impact', cubeObj.color);
+            
+            // Heavier cubes shake the screen slightly more
+            const shakePhys = COLOR_PHYSICS[cubeObj.color] ?? { volume: 0.18 };
+            this.scene.shake(0.003 * (shakePhys.volume / 0.18), 25);
           }
-          await this.cubeRenderer.animateSlide(slide);
-          
-          const cubeObj = this.state.cubes.get(slide.cubeId)!;
-          this.audio.play('impact', cubeObj.color);
-          
-          // Heavier cubes shake the screen slightly more
-          const shakePhys = COLOR_PHYSICS[cubeObj.color] ?? { volume: 0.18 };
-          this.scene.shake(0.003 * (shakePhys.volume / 0.18), 25);
-        }
-      });
+        });
 
-      await Promise.all(lanePromises);
-    }
-    
-    // Process locks
-    if (locks.length > 0) {
-      for (const lock of locks) {
-        const cube = this.state.cubes.get(lock.cubeId)!;
-        this.audio.play('lock');
-        this.cubeRenderer.animateLock(lock);
-        this.socketRenderer.flashLock(cube.socketId!);
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(40);
-
-        // Particle burst
-        const mesh = this.cubeRenderer.getMesh(lock.cubeId);
-        if (mesh) {
-          const worldPos = new THREE.Vector3();
-          mesh.getWorldPosition(worldPos);
-          this.particles.spawnLockBurst(
-            this.glassRenderer.pivot.worldToLocal(worldPos.clone()),
-            cube.color
-          );
-        }
+        await Promise.all(lanePromises);
       }
-      await new Promise(r => setTimeout(r, 300));
+
+      // 2. Animate current socket locks
+      if (currentLocks.length > 0) {
+        for (const lock of currentLocks) {
+          const cube = this.state.cubes.get(lock.cubeId)!;
+          this.audio.play('lock');
+          this.cubeRenderer.animateLock(lock);
+          this.socketRenderer.flashLock(cube.socketId!);
+          if (navigator.vibrate) navigator.vibrate(40);
+
+          const mesh = this.cubeRenderer.getMesh(lock.cubeId);
+          if (mesh) {
+            const worldPos = new THREE.Vector3();
+            mesh.getWorldPosition(worldPos);
+            this.particles.spawnLockBurst(
+              this.glassRenderer.pivot.worldToLocal(worldPos.clone()),
+              cube.color
+            );
+          }
+        }
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      // 3. Scan for color matches (>= 3 same-color adjacent cubes)
+      const popped = resolveColorMatches(this.state, this.grid);
+      if (popped.length > 0) {
+        // Play bubble pop sound
+        this.audio.play('pop');
+
+        // Animate pops shrinking in parallel + particle explosions
+        const popPromises = popped.map(async (pop) => {
+          const mesh = this.cubeRenderer.getMesh(pop.cubeId);
+          if (mesh) {
+            const worldPos = new THREE.Vector3();
+            mesh.getWorldPosition(worldPos);
+            this.particles.spawnLockBurst(
+              this.glassRenderer.pivot.worldToLocal(worldPos.clone()),
+              pop.color
+            );
+          }
+          await this.cubeRenderer.animatePop(pop.cubeId);
+        });
+        await Promise.all(popPromises);
+
+        // Pop creates new voids! Trigger next cascading slide pass!
+        currentSlides = resolveSlides(this.state, this.grid);
+        currentLocks = resolveSocketLocks(this.state, this.grid);
+      } else {
+        // No matches left, stable!
+        break;
+      }
     }
 
     // Check win

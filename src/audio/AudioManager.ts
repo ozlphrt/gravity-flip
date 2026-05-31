@@ -24,9 +24,10 @@ export class AudioManager {
     this.buffers.set('slide', this.generateSlide(ctx));
     this.buffers.set('impact', this.generateImpact(ctx));
     this.buffers.set('lock', this.generateLock(ctx));
+    this.buffers.set('pop', this.generatePop(ctx));
   }
 
-  play(name: 'slide' | 'impact' | 'lock', color?: Color): void {
+  play(name: 'slide' | 'impact' | 'lock' | 'pop', color?: Color): void {
     if (this.muted) return;
     const ctx = this.getCtx();
     const buffer = this.buffers.get(name);
@@ -100,6 +101,20 @@ export class AudioManager {
       + Math.sin(2 * Math.PI * 1320 * t) * 0.2
       + Math.sin(2 * Math.PI * 1760 * t) * 0.1
       );
+    }
+    return buf;
+  }
+
+  private generatePop(ctx: AudioContext): AudioBuffer {
+    const duration = 0.35;
+    const sr = ctx.sampleRate;
+    const buf = ctx.createBuffer(1, sr * duration, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      const t = i / sr;
+      const env = Math.exp(-t * 12);
+      const freq = 1200 + t * 2400;
+      data[i] = env * Math.sin(2 * Math.PI * freq * t) * 0.16;
     }
     return buf;
   }
