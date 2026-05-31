@@ -325,7 +325,9 @@ export class GameController {
           this.audio.play('lock');
           this.cubeRenderer.animateLock(lock);
           this.socketRenderer.flashLock(cube.socketId!);
-          if (navigator.vibrate) navigator.vibrate(40);
+          try {
+            if (navigator.vibrate) navigator.vibrate(40);
+          } catch (e) {}
 
           const mesh = this.cubeRenderer.getMesh(lock.cubeId);
           if (mesh) {
@@ -575,7 +577,9 @@ export class GameController {
 
   private handleWin(): void {
     // Haptic
-    if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
+    try {
+      if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
+    } catch (e) {}
 
     // Get level optimal moves (would need level def — use stored metadata)
     const stars = this.progress.recordCompletion(this.currentLevelId, this.state.moveCount, 99);
