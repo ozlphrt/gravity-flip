@@ -1,0 +1,56 @@
+{
+  "id": "level_003",
+  "title": "The Crossing",
+  "author": "handcrafted",
+  "difficulty": "easy",
+  "optimalMoves": 4,
+  "hint": "One cube will temporarily block another — order your rotations carefully.",
+  "tags": ["easy", "blocking"],
+  "gridSize": { "x": 4, "y": 4, "z": 4 },
+  "initialGravity": { "axis": "y", "sign": -1 },
+  "cubes": [
+    {
+      "id": "cube_red",
+      "color": "red",
+      "position": { "x": 3, "y": 3, "z": 0 },
+      "icons": ["star","star","star","star","star","star"]
+    },
+    {
+      "id": "cube_blue",
+      "color": "blue",
+      "position": { "x": 0, "y": 3, "z": 3 },
+      "icons": ["circle","circle","circle","circle","circle","circle"]
+    },
+    {
+      "id": "cube_yellow",
+      "color": "yellow",
+      "position": { "x": 1, "y": 3, "z": 1 },
+      "icons": ["triangle","triangle","triangle","triangle","triangle","triangle"]
+    }
+  ],
+  "blockers": [
+    { "id": "block_a", "position": { "x": 0, "y": 0, "z": 0 } },
+    { "id": "block_b", "position": { "x": 3, "y": 0, "z": 3 } },
+    { "id": "block_c", "position": { "x": 2, "y": 1, "z": 1 } }
+  ],
+  "sockets": [
+    {
+      "id": "socket_red",
+      "position": { "x": 3, "y": 0, "z": 3 },
+      "requiredColor": "red",
+      "face": "-y"
+    },
+    {
+      "id": "socket_blue",
+      "position": { "x": 0, "y": 0, "z": 0 },
+      "requiredColor": "blue",
+      "face": "-y"
+    },
+    {
+      "id": "socket_yellow",
+      "position": { "x": 1, "y": 0, "z": 1 },
+      "requiredColor": "yellow",
+      "face": "-y"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "level_002",
+  "title": "Three's Company",
+  "author": "handcrafted",
+  "difficulty": "tutorial",
+  "optimalMoves": 3,
+  "hint": "The yellow cube needs a different gravity direction than the others.",
+  "tags": ["tutorial", "3-cubes"],
+  "gridSize": { "x": 4, "y": 4, "z": 4 },
+  "initialGravity": { "axis": "y", "sign": -1 },
+  "cubes": [
+    {
+      "id": "cube_red",
+      "color": "red",
+      "position": { "x": 0, "y": 3, "z": 1 },
+      "icons": ["star","star","star","star","star","star"]
+    },
+    {
+      "id": "cube_blue",
+      "color": "blue",
+      "position": { "x": 3, "y": 3, "z": 1 },
+      "icons": ["circle","circle","circle","circle","circle","circle"]
+    },
+    {
+      "id": "cube_yellow",
+      "color": "yellow",
+      "position": { "x": 1, "y": 3, "z": 3 },
+      "icons": ["triangle","triangle","triangle","triangle","triangle","triangle"]
+    }
+  ],
+  "blockers": [
+    { "id": "block_a", "position": { "x": 0, "y": 1, "z": 1 } },
+    { "id": "block_b", "position": { "x": 3, "y": 1, "z": 1 } }
+  ],
+  "sockets": [
+    {
+      "id": "socket_red",
+      "position": { "x": 0, "y": 2, "z": 1 },
+      "requiredColor": "red",
+      "face": "-y"
+    },
+    {
+      "id": "socket_blue",
+      "position": { "x": 3, "y": 2, "z": 1 },
+      "requiredColor": "blue",
+      "face": "-y"
+    },
+    {
+      "id": "socket_yellow",
+      "position": { "x": 1, "y": 0, "z": 3 },
+      "requiredColor": "yellow",
+      "face": "-y"
+    }
+  ]
+}

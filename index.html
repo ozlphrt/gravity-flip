@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0a0d14" />
+    <meta name="description" content="Gravity Flip Cube — a 3D sliding block puzzle. Rotate the glass cube, shift gravity, and guide colored cubes to their matching sockets." />
+    <title>Gravity Flip Cube</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  </head>
+  <body>
+    <!-- Loading screen -->
+    <div id="loading" class="loading-screen">
+      <div class="loading-logo">
+        <span class="loading-title">GRAVITY FLIP CUBE</span>
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+
+    <!-- Main layout -->
+    <div id="app">
+
+      <!-- ── Top bar ────────────────────────────────────── -->
+      <header class="top-bar">
+        <button id="btn-undo" class="icon-btn" aria-label="Undo move">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7v6h6"/><path d="M3 13C5.33 6.36 14.17 3.64 20 8c2.5 2 4 5 4 8"/>
+          </svg>
+          <span>UNDO</span>
+        </button>
+
+        <div class="top-center">
+          <div id="level-title" class="level-title">Level 1</div>
+          <div class="stats-row">
+            <span class="stat-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              <span id="move-count">0</span>
+            </span>
+            <span class="stat-badge goal">
+              🎯 <span id="level-progress">0/0</span>
+            </span>
+          </div>
+        </div>
+
+        <button id="btn-restart" class="icon-btn" aria-label="Restart level">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/>
+          </svg>
+          <span>RESET</span>
+        </button>
+      </header>
+
+      <!-- ── 3D Game canvas ─────────────────────────────── -->
+      <main class="game-area">
+        <canvas id="game-canvas"></canvas>
+
+
+
+        <!-- Tutorial hint -->
+        <div id="tutorial-hint" class="tutorial-hint hidden">
+          Swipe or tap arrows to rotate the cube!
+        </div>
+
+        <!-- Mute button -->
+        <button id="btn-mute" class="mute-btn" aria-label="Toggle sound">🔊</button>
+      </main>
+
+
+
+    </div>
+
+    <!-- ── Level Complete Modal ───────────────────────────── -->
+    <div id="modal-complete" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div id="modal-stars" class="modal-stars">★★★</div>
+        <h2 class="modal-title">SOLVED!</h2>
+        <div class="modal-stats">
+          <div class="modal-stat">
+            <span class="modal-stat-label">Moves</span>
+            <span id="modal-moves" class="modal-stat-value">0</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-next-level" class="btn-primary">Next Level →</button>
+          <button id="btn-replay" class="btn-secondary">Play Again</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
