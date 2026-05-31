@@ -179,9 +179,9 @@ export class SceneManager {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    // 2. High-precision thin background grid lines (inspired by FlowFree Cube)
-    const gridSize = 16;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.038)';
+    // 2. High-precision thin background grid lines (extremely subtle and perfectly blended)
+    const gridSize = 48;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.008)';
     ctx.lineWidth = 1.0;
     ctx.beginPath();
 
