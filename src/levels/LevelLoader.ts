@@ -11,7 +11,7 @@ import type {
   Vec3,
   Color,
 } from '../core/types';
-import { Grid, vecKey } from '../core/Grid';
+import { Grid } from '../core/Grid';
 import { IDENTITY, cloneMatrix } from '../core/GravitySystem';
 
 // Import all levels statically (Vite resolves JSON imports)
@@ -47,117 +47,87 @@ export function loadLevel(
   const def = LEVEL_REGISTRY[levelId];
   if (!def) throw new Error(`Unknown level: ${levelId}`);
 
-  validateLevel(def);
+  // Determine grid size and parameters based on level
+  let gridSize = { x: 5, y: 5, z: 5 };
+  let allowedColors: Color[] = ['red', 'blue'];
+  let cubeCount = 20;
+
+  if (levelId === 'level_001') {
+    gridSize = { x: 4, y: 4, z: 4 };
+    allowedColors = ['red', 'blue'];
+    cubeCount = 12;
+  } else if (levelId === 'level_002') {
+    gridSize = { x: 5, y: 5, z: 5 };
+    allowedColors = ['red', 'blue', 'yellow'];
+    cubeCount = 30;
+  } else if (levelId === 'level_003') {
+    gridSize = { x: 6, y: 6, z: 6 };
+    allowedColors = ['red', 'blue', 'yellow', 'green'];
+    cubeCount = 60;
+  } else if (levelId === 'level_004') {
+    gridSize = { x: 7, y: 7, z: 7 };
+    allowedColors = ['red', 'blue', 'yellow', 'green', 'purple'];
+    cubeCount = 100;
+  } else if (levelId === 'level_005') {
+    gridSize = { x: 8, y: 8, z: 8 };
+    allowedColors = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+    cubeCount = 160;
+  } else if (levelId === 'level_006') {
+    gridSize = { x: 10, y: 10, z: 10 };
+    allowedColors = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+    cubeCount = 300;
+  }
 
   const gridMap = new Map<string, GridCell>();
-  const grid = new Grid(def.gridSize, gridMap);
+  const grid = new Grid(gridSize, gridMap);
 
-  // ── Build blocker map ──────────────────────────────────
+  // Sockets and blockers are completely removed
   const blockers = new Map<string, FixedBlocker>();
-  for (const bd of def.blockers) {
-    const blocker: FixedBlocker = {
-      id: bd.id,
-      position: { ...bd.position },
-      icon: bd.icon,
-    };
-    blockers.set(bd.id, blocker);
-    grid.setCell(blocker.position, { type: 'blocker', cubeId: null, socketId: null });
-  }
-
-  // ── Build socket map ───────────────────────────────────
   const sockets = new Map<string, Socket>();
-  for (const sd of def.sockets) {
-    const socket: Socket = {
-      id: sd.id,
-      position: { ...sd.position },
-      requiredColor: sd.requiredColor,
-      face: sd.face,
-      isOccupied: false,
-      occupiedByCubeId: null,
-    };
-    sockets.set(sd.id, socket);
-    grid.setCell(socket.position, { type: 'socket', cubeId: null, socketId: socket.id });
-  }
 
-  // Gather all empty positions
+  // Gather all positions in the grid
   const availablePositions: Vec3[] = [];
-  for (let x = 0; x < def.gridSize.x; x++) {
-    for (let y = 0; y < def.gridSize.y; y++) {
-      for (let z = 0; z < def.gridSize.z; z++) {
-        const pos = { x, y, z };
-        const cell = grid.getCell(pos);
-        if (cell.type === 'empty') {
-          availablePositions.push(pos);
-        }
+  for (let x = 0; x < gridSize.x; x++) {
+    for (let y = 0; y < gridSize.y; y++) {
+      for (let z = 0; z < gridSize.z; z++) {
+        availablePositions.push({ x, y, z });
       }
     }
   }
 
-  // Shuffle availablePositions using Fisher-Yates if sandbox level
-  const shuffle = def.tags?.includes('sandbox');
-  if (shuffle) {
-    for (let i = availablePositions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = availablePositions[i];
-      availablePositions[i] = availablePositions[j];
-      availablePositions[j] = temp;
-    }
+  // Shuffle availablePositions
+  for (let i = availablePositions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = availablePositions[i];
+    availablePositions[i] = availablePositions[j];
+    availablePositions[j] = temp;
   }
 
-  // ── Build cube map ─────────────────────────────────────
+  // Build cube map
   const cubes = new Map<string, MovableCube>();
-  
-  // If sandbox level, let's start with 300 cubes!
-  let cubesToLoad = def.cubes;
-  if (shuffle) {
-    const colors: Color[] = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
-    const targetCount = Math.min(300, availablePositions.length);
-    cubesToLoad = [];
-    for (let i = 0; i < targetCount; i++) {
-      cubesToLoad.push({
-        id: `cube_${i + 1}`,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        position: { ...availablePositions[i] },
-        icons: ['dot', 'dot', 'dot', 'dot', 'dot', 'dot']
-      } as any);
-    }
-  }
-
-  let posIdx = 0;
-  for (const cd of cubesToLoad) {
-    const defaultIcons: [string,string,string,string,string,string] =
-      ['dot','dot','dot','dot','dot','dot'];
-    const icons = cd.icons
-      ? (cd.icons.slice(0,6) as [string,string,string,string,string,string])
-      : defaultIcons;
-
-    let cubePos = { ...cd.position };
-    if (shuffle && posIdx < availablePositions.length && !shuffle) { // position is already pre-assigned by availablePositions
-      cubePos = { ...availablePositions[posIdx++] };
-    }
-
+  const targetCount = Math.min(cubeCount, availablePositions.length);
+  for (let i = 0; i < targetCount; i++) {
+    const color = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+    const cubeId = `cube_${i + 1}`;
     const cube: MovableCube = {
-      id: cd.id,
-      color: cd.color,
-      icons,
-      position: cubePos,
+      id: cubeId,
+      color,
+      icons: ['dot', 'dot', 'dot', 'dot', 'dot', 'dot'],
+      position: { ...availablePositions[i] },
       isLocked: false,
       socketId: null,
     };
-    cubes.set(cd.id, cube);
-
-    // Mark grid cell
-    const existing = grid.getCell(cube.position);
+    cubes.set(cubeId, cube);
     grid.setCell(cube.position, {
       type: 'movable',
-      cubeId: cube.id,
-      socketId: existing.socketId,
+      cubeId,
+      socketId: null,
     });
   }
 
   const state: GameState = {
     levelId,
-    gridSize: { ...def.gridSize },
+    gridSize,
     grid: gridMap,
     cubes,
     sockets,
@@ -166,52 +136,11 @@ export function loadLevel(
     orientationMatrix: cloneMatrix(IDENTITY),
     moveCount: 0,
     lockedCount: 0,
-    totalRequired: sockets.size,
+    totalRequired: 0,
     isComplete: false,
   };
 
   return { state, grid };
 }
 
-// ── Validation ────────────────────────────────────────────
-function validateLevel(def: LevelDefinition): void {
-  const inBounds = (v: { x: number; y: number; z: number }) =>
-    v.x >= 0 && v.x < def.gridSize.x &&
-    v.y >= 0 && v.y < def.gridSize.y &&
-    v.z >= 0 && v.z < def.gridSize.z;
 
-  const occupiedCells = new Set<string>();
-
-  // Validate cubes
-  const cubeIds = new Set<string>();
-  for (const c of def.cubes) {
-    if (cubeIds.has(c.id)) throw new Error(`Duplicate cube id: ${c.id}`);
-    cubeIds.add(c.id);
-    if (!inBounds(c.position)) throw new Error(`Cube ${c.id} is out of bounds`);
-    const key = vecKey(c.position);
-    if (occupiedCells.has(key)) throw new Error(`Cube ${c.id} overlaps another object at ${key}`);
-    occupiedCells.add(key);
-  }
-
-  // Validate blockers
-  const blockerIds = new Set<string>();
-  for (const b of def.blockers) {
-    if (blockerIds.has(b.id)) throw new Error(`Duplicate blocker id: ${b.id}`);
-    blockerIds.add(b.id);
-    if (!inBounds(b.position)) throw new Error(`Blocker ${b.id} is out of bounds`);
-    const key = vecKey(b.position);
-    if (occupiedCells.has(key)) throw new Error(`Blocker ${b.id} overlaps another object at ${key}`);
-    occupiedCells.add(key);
-  }
-
-  // Validate sockets (can share cell with cubes — sockets are floor/wall markers)
-  const socketIds = new Set<string>();
-  for (const s of def.sockets) {
-    if (socketIds.has(s.id)) throw new Error(`Duplicate socket id: ${s.id}`);
-    socketIds.add(s.id);
-    if (!inBounds(s.position)) throw new Error(`Socket ${s.id} is out of bounds`);
-  }
-
-  // Ensure at least one cube
-  if (def.cubes.length === 0) throw new Error('Level has no cubes');
-}

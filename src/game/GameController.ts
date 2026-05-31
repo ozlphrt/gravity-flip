@@ -74,6 +74,15 @@ export class GameController {
     window.addEventListener('touchstart', setInteracted, { passive: true });
   }
 
+  private safeVibrate(pattern: number | number[]): void {
+    try {
+      if (!this.userInteracted || typeof navigator === 'undefined' || !navigator.vibrate) return;
+      const userActivation = (navigator as any).userActivation;
+      if (userActivation && !userActivation.hasBeenActive) return;
+      navigator.vibrate(pattern);
+    } catch (e) {}
+  }
+
   // ── Initialization ────────────────────────────────────────
 
   async init(levelId: string): Promise<void> {
@@ -121,8 +130,9 @@ export class GameController {
       this.scene.scene, state.gridSize, this.scene.anim
     );
     this.cubeRenderer = new CubeRenderer(
-      this.scene.scene, this.glassRenderer.pivot, this.scene.anim
+      this.scene.scene, this.glassRenderer.pivot, this.scene.anim, state.gridSize
     );
+    this.scene.updateCameraFocus(state.gridSize);
     this.socketRenderer = new SocketRenderer(this.glassRenderer.pivot);
     this.blockerRenderer = new BlockerRenderer(this.glassRenderer.pivot);
     this.particles = new ParticleSystem(this.scene.scene, this.glassRenderer.pivot);
@@ -337,9 +347,7 @@ export class GameController {
           this.audio.play('lock');
           this.cubeRenderer.animateLock(lock);
           this.socketRenderer.flashLock(cube.socketId!);
-          try {
-            if (this.userInteracted && navigator.vibrate) navigator.vibrate(40);
-          } catch (e) {}
+          this.safeVibrate(40);
 
           const mesh = this.cubeRenderer.getMesh(lock.cubeId);
           if (mesh) {
@@ -589,9 +597,7 @@ export class GameController {
 
   private handleWin(): void {
     // Haptic
-    try {
-      if (this.userInteracted && navigator.vibrate) navigator.vibrate([50, 30, 80]);
-    } catch (e) {}
+    this.safeVibrate([50, 30, 80]);
 
     // Get level optimal moves (would need level def — use stored metadata)
     const stars = this.progress.recordCompletion(this.currentLevelId, this.state.moveCount, 99);

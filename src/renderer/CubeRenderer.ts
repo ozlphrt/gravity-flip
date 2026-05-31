@@ -18,11 +18,6 @@ const COLOR_MAP: Record<Color, number> = {
   orange: 0xe76f51, // Burnt Copper
 };
 
-/** World-space position of a grid cell inside the pivot's local frame */
-function gridToLocal(v: Vec3): THREE.Vector3 {
-  return new THREE.Vector3(v.x - 3.0, v.y - 3.0, v.z - 3.0);
-}
-
 export const COLOR_PHYSICS: Record<Color, { durationMult: number, pitchOffset: number, volume: number }> = {
   yellow: { durationMult: 0.35, pitchOffset: 1.5,  volume: 0.10 }, // Super light / fast, high-pitched paper-thin micro-click
   red:    { durationMult: 0.45, pitchOffset: 1.15, volume: 0.15 }, // Light, snappy click
@@ -37,10 +32,24 @@ export class CubeRenderer {
   private ghostMeshes: Map<string, THREE.Mesh> = new Map();
   private pivot: THREE.Group;
   private anim: AnimationManager;
+  private gridOffset: THREE.Vector3;
 
-  constructor(_scene: THREE.Scene, pivot: THREE.Group, anim: AnimationManager) {
+  constructor(_scene: THREE.Scene, pivot: THREE.Group, anim: AnimationManager, gridSize: Vec3) {
     this.pivot = pivot;
     this.anim = anim;
+    this.gridOffset = new THREE.Vector3(
+      (gridSize.x - 1) / 2,
+      (gridSize.y - 1) / 2,
+      (gridSize.z - 1) / 2
+    );
+  }
+
+  private gridToLocal(v: Vec3): THREE.Vector3 {
+    return new THREE.Vector3(
+      v.x - this.gridOffset.x,
+      v.y - this.gridOffset.y,
+      v.z - this.gridOffset.z
+    );
   }
 
   /** Build meshes for all cubes in the level */
@@ -62,7 +71,7 @@ export class CubeRenderer {
     });
 
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.copy(gridToLocal(cube.position));
+    mesh.position.copy(this.gridToLocal(cube.position));
     mesh.userData.cubeId = cube.id;
     mesh.userData.color = cube.color;
     mesh.castShadow = true;
@@ -82,8 +91,8 @@ export class CubeRenderer {
     const mesh = this.meshes.get(payload.cubeId);
     if (!mesh) return Promise.resolve();
 
-    const fromPos = gridToLocal(payload.from);
-    const toPos = gridToLocal(payload.to);
+    const fromPos = this.gridToLocal(payload.from);
+    const toPos = this.gridToLocal(payload.to);
 
     const color = (mesh.userData.color ?? 'green') as Color;
     const phys = COLOR_PHYSICS[color] ?? { durationMult: 1.0 };
@@ -179,7 +188,7 @@ export class CubeRenderer {
   /** Snap cube mesh position to grid position (no animation) */
   snapPosition(cubeId: string, pos: Vec3): void {
     const mesh = this.meshes.get(cubeId);
-    if (mesh) mesh.position.copy(gridToLocal(pos));
+    if (mesh) mesh.position.copy(this.gridToLocal(pos));
   }
 
   /** Remove all cube meshes */
@@ -208,7 +217,7 @@ export class CubeRenderer {
         depthWrite: false,
       });
       const ghost = new THREE.Mesh(geo, mat);
-      ghost.position.copy(gridToLocal(slide.to));
+      ghost.position.copy(this.gridToLocal(slide.to));
       this.pivot.add(ghost);
       this.ghostMeshes.set(slide.cubeId, ghost);
     }

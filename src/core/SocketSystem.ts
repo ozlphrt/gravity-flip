@@ -52,19 +52,10 @@ export function resolveSocketLocks(
  * All required sockets must be occupied.
  */
 export function checkWinCondition(state: GameState): boolean {
-  if (state.totalRequired === 0) return false; // Sandbox mode has no win condition
-  if (state.lockedCount >= state.totalRequired) {
-    // Extra safety: verify all sockets are occupied
-    let allFilled = true;
-    for (const socket of state.sockets.values()) {
-      if (!socket.isOccupied) {
-        allFilled = false;
-        break;
-      }
-    }
-    return allFilled;
-  }
-  return false;
+  // Win when all cubes are matched and cleared!
+  // Level 6 (Sandbox) is endless.
+  if (state.levelId === 'level_006') return false;
+  return state.cubes.size === 0;
 }
 
 /**

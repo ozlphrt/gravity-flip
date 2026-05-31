@@ -138,6 +138,18 @@ export class SceneManager {
     cancelAnimationFrame(this._rafId);
   }
 
+  updateCameraFocus(gridSize: any): void {
+    const cx = (gridSize.x - 1) / 2;
+    const cy = (gridSize.y - 1) / 2;
+    const cz = (gridSize.z - 1) / 2;
+
+    const maxDim = Math.max(gridSize.x, gridSize.y, gridSize.z);
+    const distanceScale = maxDim * 2.1 + 7.5;
+
+    this.camera.position.set(cx, cy + maxDim * 0.65, cz + distanceScale);
+    this.camera.lookAt(cx, cy, cz);
+  }
+
   /** Camera micro-shake effect */
   shake(intensity = 0.08, duration = 150): void {
     const origin = this.camera.position.clone();
@@ -172,16 +184,16 @@ export class SceneManager {
 
     const ctx = this.bgCanvas.getContext('2d')!;
 
-    // 1. Luminous radial gradient studio backdrop (extremely dark pitch black)
+    // 1. Luminous radial gradient studio backdrop (premium dark grey)
     const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h));
-    grad.addColorStop(0, '#020202'); // Matte near-black center
-    grad.addColorStop(1, '#000000'); // Pure pitch black edges
+    grad.addColorStop(0, '#1c1f26'); // Premium matte dark grey center
+    grad.addColorStop(1, '#0e1014'); // Deep dark charcoal edges
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
     // 2. High-precision thin background grid lines (extremely subtle and perfectly blended)
     const gridSize = 48;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.008)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
     ctx.lineWidth = 1.0;
     ctx.beginPath();
 
