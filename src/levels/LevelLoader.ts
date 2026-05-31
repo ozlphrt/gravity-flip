@@ -8,6 +8,8 @@ import type {
   FixedBlocker,
   Socket,
   GridCell,
+  Vec3,
+  Color,
 } from '../core/types';
 import { Grid, vecKey } from '../core/Grid';
 import { IDENTITY, cloneMatrix } from '../core/GravitySystem';
@@ -48,29 +50,6 @@ export function loadLevel(
   const gridMap = new Map<string, GridCell>();
   const grid = new Grid(def.gridSize, gridMap);
 
-  // ── Build cube map ─────────────────────────────────────
-  const cubes = new Map<string, MovableCube>();
-  for (const cd of def.cubes) {
-    const defaultIcons: [string,string,string,string,string,string] =
-      ['dot','dot','dot','dot','dot','dot'];
-    const icons = cd.icons
-      ? (cd.icons.slice(0,6) as [string,string,string,string,string,string])
-      : defaultIcons;
-
-    const cube: MovableCube = {
-      id: cd.id,
-      color: cd.color,
-      icons,
-      position: { ...cd.position },
-      isLocked: false,
-      socketId: null,
-    };
-    cubes.set(cd.id, cube);
-
-    // Mark grid cell
-    grid.setCell(cube.position, { type: 'movable', cubeId: cube.id, socketId: null });
-  }
-
   // ── Build blocker map ──────────────────────────────────
   const blockers = new Map<string, FixedBlocker>();
   for (const bd of def.blockers) {
@@ -95,13 +74,82 @@ export function loadLevel(
       occupiedByCubeId: null,
     };
     sockets.set(sd.id, socket);
+    grid.setCell(socket.position, { type: 'socket', cubeId: null, socketId: socket.id });
+  }
 
-    // Sockets can share a cell with a cube (cube sits on socket)
-    const existing = grid.getCell(socket.position);
-    grid.setCell(socket.position, {
-      type: existing.cubeId ? existing.type : 'socket',
-      cubeId: existing.cubeId,
-      socketId: socket.id,
+  // Gather all empty positions
+  const availablePositions: Vec3[] = [];
+  for (let x = 0; x < def.gridSize.x; x++) {
+    for (let y = 0; y < def.gridSize.y; y++) {
+      for (let z = 0; z < def.gridSize.z; z++) {
+        const pos = { x, y, z };
+        const cell = grid.getCell(pos);
+        if (cell.type === 'empty') {
+          availablePositions.push(pos);
+        }
+      }
+    }
+  }
+
+  // Shuffle availablePositions using Fisher-Yates if sandbox level
+  const shuffle = def.tags?.includes('sandbox');
+  if (shuffle) {
+    for (let i = availablePositions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = availablePositions[i];
+      availablePositions[i] = availablePositions[j];
+      availablePositions[j] = temp;
+    }
+  }
+
+  // ── Build cube map ─────────────────────────────────────
+  const cubes = new Map<string, MovableCube>();
+  
+  // If sandbox level, let's start with 300 cubes!
+  let cubesToLoad = def.cubes;
+  if (shuffle) {
+    const colors: Color[] = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+    const targetCount = Math.min(300, availablePositions.length);
+    cubesToLoad = [];
+    for (let i = 0; i < targetCount; i++) {
+      cubesToLoad.push({
+        id: `cube_${i + 1}`,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        position: { ...availablePositions[i] },
+        icons: ['dot', 'dot', 'dot', 'dot', 'dot', 'dot']
+      } as any);
+    }
+  }
+
+  let posIdx = 0;
+  for (const cd of cubesToLoad) {
+    const defaultIcons: [string,string,string,string,string,string] =
+      ['dot','dot','dot','dot','dot','dot'];
+    const icons = cd.icons
+      ? (cd.icons.slice(0,6) as [string,string,string,string,string,string])
+      : defaultIcons;
+
+    let cubePos = { ...cd.position };
+    if (shuffle && posIdx < availablePositions.length && !shuffle) { // position is already pre-assigned by availablePositions
+      cubePos = { ...availablePositions[posIdx++] };
+    }
+
+    const cube: MovableCube = {
+      id: cd.id,
+      color: cd.color,
+      icons,
+      position: cubePos,
+      isLocked: false,
+      socketId: null,
+    };
+    cubes.set(cd.id, cube);
+
+    // Mark grid cell
+    const existing = grid.getCell(cube.position);
+    grid.setCell(cube.position, {
+      type: 'movable',
+      cubeId: cube.id,
+      socketId: existing.socketId,
     });
   }
 

@@ -24,12 +24,12 @@ function gridToLocal(v: Vec3): THREE.Vector3 {
 }
 
 export const COLOR_PHYSICS: Record<Color, { durationMult: number, pitchOffset: number, volume: number }> = {
-  yellow: { durationMult: 0.65, pitchOffset: 1.5,  volume: 0.10 }, // Super light / fast, high-pitched paper-thin micro-click
-  red:    { durationMult: 0.85, pitchOffset: 1.15, volume: 0.15 }, // Light, snappy click
-  green:  { durationMult: 1.0,  pitchOffset: 0.9,  volume: 0.18 }, // Standard organic woodblock click
-  blue:   { durationMult: 1.25, pitchOffset: 0.72, volume: 0.22 }, // Heavy, solid plastic click
-  orange: { durationMult: 1.45, pitchOffset: 0.58, volume: 0.27 }, // Very heavy, dense impact
-  purple: { durationMult: 1.7,  pitchOffset: 0.42, volume: 0.35 }, // Massive lead weight, very deep resonant thud
+  yellow: { durationMult: 0.35, pitchOffset: 1.5,  volume: 0.10 }, // Super light / fast, high-pitched paper-thin micro-click
+  red:    { durationMult: 0.45, pitchOffset: 1.15, volume: 0.15 }, // Light, snappy click
+  green:  { durationMult: 0.55, pitchOffset: 0.9,  volume: 0.18 }, // Standard organic woodblock click
+  blue:   { durationMult: 0.65, pitchOffset: 0.72, volume: 0.22 }, // Heavy, solid plastic click
+  orange: { durationMult: 0.75, pitchOffset: 0.58, volume: 0.27 }, // Very heavy, dense impact
+  purple: { durationMult: 0.85, pitchOffset: 0.42, volume: 0.35 }, // Massive lead weight, very deep resonant thud
 };
 
 export class CubeRenderer {
@@ -50,7 +50,7 @@ export class CubeRenderer {
     }
   }
 
-  private addCubeMesh(cube: MovableCube): THREE.Mesh {
+  addCubeMesh(cube: MovableCube): THREE.Mesh {
     const geo = new RoundedBoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, 5, 0.08);
     const hexColor = COLOR_MAP[cube.color] ?? 0xffffff;
 

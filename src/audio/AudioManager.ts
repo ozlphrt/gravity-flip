@@ -106,15 +106,41 @@ export class AudioManager {
   }
 
   private generatePop(ctx: AudioContext): AudioBuffer {
-    const duration = 0.35;
+    const duration = 0.12; // Ultra-short for a subtle bubble-pop feel
     const sr = ctx.sampleRate;
     const buf = ctx.createBuffer(1, sr * duration, sr);
     const data = buf.getChannelData(0);
+    
+    let prevNoise = 0;
+    
     for (let i = 0; i < data.length; i++) {
       const t = i / sr;
-      const env = Math.exp(-t * 12);
-      const freq = 1200 + t * 2400;
-      data[i] = env * Math.sin(2 * Math.PI * freq * t) * 0.16;
+      const rawNoise = Math.random() * 2 - 1;
+      
+      // Simple 1-pole low-pass filter for the rumble:
+      const lpNoise = 0.08 * rawNoise + 0.92 * prevNoise;
+      prevNoise = lpNoise;
+      
+      // Envelopes:
+      // Extremely rapid decay rates
+      const envBlast = Math.exp(-t * 280.0);
+      const envNoise = Math.exp(-t * 32.5);
+      const envBoom = Math.exp(-t * 24.2);
+      
+      // Very gentle low thump
+      const freqBoom = 130 * Math.exp(-t * 20) + 30;
+      const boom = Math.sin(2 * Math.PI * freqBoom * t);
+      
+      // Mix high-freq spike, low-pass noise, and gentle thump (balanced audible volume)
+      data[i] = (
+        envBlast * rawNoise * 0.045 +
+        envNoise * lpNoise * 0.38 +
+        envBoom * boom * 0.12
+      );
+      
+      // Satisfying soft clipping threshold
+      if (data[i] > 0.15) data[i] = 0.15;
+      else if (data[i] < -0.15) data[i] = -0.15;
     }
     return buf;
   }

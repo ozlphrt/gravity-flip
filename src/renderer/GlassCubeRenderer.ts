@@ -112,12 +112,12 @@ export class GlassCubeRenderer {
       opacity: 0.85,
     });
     this.edgeLines = new THREE.LineSegments(edgesGeo, edgeMat);
-    this.edgeLines.visible = true; // Make visible to show outer gridlines
+    this.edgeLines.visible = false; // Make invisible to remove outer gridlines
     this.pivot.add(this.edgeLines);
 
     // ── Inner rail lattice ─────────────────────────────────
     this.railLines = this.buildRailLattice(gridSize);
-    this.railLines.visible = true; // Make visible to show inner grid cell slots
+    this.railLines.visible = false; // Make invisible to remove outer gridlines entirely
     this.pivot.add(this.railLines);
   }
 

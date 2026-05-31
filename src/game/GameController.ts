@@ -2,7 +2,7 @@
 // GameController — orchestrates input → simulation → animation → UI
 // ============================================================
 import * as THREE from 'three';
-import type { GameState, SwipeDirection, GravityDir } from '../core/types';
+import type { GameState, SwipeDirection, GravityDir, MovableCube, Color } from '../core/types';
 import { Grid } from '../core/Grid';
 import {
   applySwipeToOrientation, cloneMatrix
@@ -70,6 +70,27 @@ export class GameController {
     this.bindUI();
     this.updateUI();
     this.showTutorialHint(levelId);
+
+    // Automatically trigger tumbling physics on level load without waiting for player swipe!
+    const initialSlides = resolveSlides(this.state, this.grid);
+    const initialLocks = resolveSocketLocks(this.state, this.grid);
+    if (initialSlides.length > 0 || initialLocks.length > 0) {
+      this.locked = true;
+      // Settle camera brief delay of 450ms, then let blocks tumble down beautifully!
+      setTimeout(async () => {
+        await this.runPhysicsCascade(initialSlides, initialLocks, this.state.gravity);
+        
+        // Re-check win just in case cascades solved the level
+        const won = checkWinCondition(this.state);
+        if (won) {
+          this.state.isComplete = true;
+          await new Promise(r => setTimeout(r, 400));
+          this.handleWin();
+        }
+        this.updateUI();
+        this.locked = false;
+      }, 450);
+    }
   }
 
   private async loadAndBuildLevel(levelId: string): Promise<void> {
@@ -93,6 +114,7 @@ export class GameController {
     this.socketRenderer = new SocketRenderer(this.glassRenderer.pivot);
     this.blockerRenderer = new BlockerRenderer(this.glassRenderer.pivot);
     this.particles = new ParticleSystem(this.scene.scene, this.glassRenderer.pivot);
+    this.particles.setGravity(state.gravity);
     this.gravityArrow = new GravityArrow(this.scene.scene, this.scene.anim);
 
     // Initialize visuals
@@ -185,6 +207,7 @@ export class GameController {
 
     // Apply to state
     this.state.gravity = newGravity;
+    this.particles.setGravity(newGravity);
     // Keep dummy orientation matrix for state compatibility
     const newOrientation = applySwipeToOrientation(this.state.orientationMatrix, dir);
     this.state.orientationMatrix = newOrientation;
@@ -223,8 +246,32 @@ export class GameController {
     // Wait for rotation, then resolve cascading slides and pop matches
     await rotPromise;
 
-    let currentSlides = slides;
-    let currentLocks = locks;
+    await this.runPhysicsCascade(slides, locks, newGravity);
+
+    // Check win
+    const won = checkWinCondition(this.state);
+    if (won) {
+      this.state.isComplete = true;
+      await new Promise(r => setTimeout(r, 400));
+      this.handleWin();
+    }
+
+    this.updateUI();
+    this.locked = false;
+  }
+
+  /**
+   * Dedicated reusable cascade slide/pop loop for swiping and startup tumbling.
+   */
+  private async runPhysicsCascade(
+    initialSlides: typeof resolveSlides extends (...args: any[]) => infer R ? R : any,
+    initialLocks: typeof resolveSocketLocks extends (...args: any[]) => infer R ? R : any,
+    newGravity: GravityDir
+  ): Promise<void> {
+    let currentSlides = initialSlides;
+    let currentLocks = initialLocks;
+    let anyExplosion = false;
+    let hasSpawnedThisTurn = false;
 
     while (true) {
       // 1. Animate current slide batch
@@ -251,10 +298,10 @@ export class GameController {
           const laneStartDelay = (v1 + v2) * 20 + weightDelay + Math.random() * 12;
           await new Promise(r => setTimeout(r, laneStartDelay));
 
-          for (let i = 0; i < laneSlides.length; i++) {
-            const slide = laneSlides[i];
+          // Run slides in parallel with a staggered start delay for a beautifully natural flow!
+          const slidePromises = laneSlides.map(async (slide, i) => {
             if (i > 0) {
-              await new Promise(r => setTimeout(r, 65));
+              await new Promise(r => setTimeout(r, i * 45));
             }
             await this.cubeRenderer.animateSlide(slide);
             
@@ -264,7 +311,8 @@ export class GameController {
             // Heavier cubes shake the screen slightly more
             const shakePhys = COLOR_PHYSICS[cubeObj.color] ?? { volume: 0.18 };
             this.scene.shake(0.003 * (shakePhys.volume / 0.18), 25);
-          }
+          });
+          await Promise.all(slidePromises);
         });
 
         await Promise.all(lanePromises);
@@ -295,6 +343,7 @@ export class GameController {
       // 3. Scan for color matches (>= 3 same-color adjacent cubes)
       const popped = resolveColorMatches(this.state, this.grid);
       if (popped.length > 0) {
+        anyExplosion = true;
         // Play bubble pop sound
         this.audio.play('pop');
 
@@ -304,9 +353,10 @@ export class GameController {
           if (mesh) {
             const worldPos = new THREE.Vector3();
             mesh.getWorldPosition(worldPos);
-            this.particles.spawnLockBurst(
+            this.particles.spawnExplosion(
               this.glassRenderer.pivot.worldToLocal(worldPos.clone()),
-              pop.color
+              pop.color,
+              popped.length
             );
           }
           await this.cubeRenderer.animatePop(pop.cubeId);
@@ -317,21 +367,84 @@ export class GameController {
         currentSlides = resolveSlides(this.state, this.grid);
         currentLocks = resolveSocketLocks(this.state, this.grid);
       } else {
-        // No matches left, stable!
+        // No matches left in this cascade pass.
+        // If there were NO explosions at all this turn, spawn new cubes from the ceiling!
+        if (!anyExplosion && !hasSpawnedThisTurn) {
+          hasSpawnedThisTurn = true;
+
+          const g = newGravity;
+          // Ceiling is opposite to gravity direction. If sign is -1, ceiling is at gridSize-1. If sign is 1, ceiling is at 0.
+          const ceilingVal = (g.sign === -1) ? (this.state.gridSize[g.axis] - 1) : 0;
+
+          const emptyCeilingCells: { x: number; y: number; z: number }[] = [];
+          const axes: ('x' | 'y' | 'z')[] = ['x', 'y', 'z'];
+          const otherAxes = axes.filter(a => a !== g.axis);
+
+          const limit1 = this.state.gridSize[otherAxes[0]];
+          const limit2 = this.state.gridSize[otherAxes[1]];
+
+          for (let i = 0; i < limit1; i++) {
+            for (let j = 0; j < limit2; j++) {
+              const pos = {} as any;
+              pos[g.axis] = ceilingVal;
+              pos[otherAxes[0]] = i;
+              pos[otherAxes[1]] = j;
+
+              if (this.grid.getCell(pos).type === 'empty') {
+                emptyCeilingCells.push(pos);
+              }
+            }
+          }
+
+          if (emptyCeilingCells.length > 0) {
+            // Spawn N new cubes (e.g. random count between 3 and 5, capped by empty ceiling cells)
+            const spawnCount = Math.min(emptyCeilingCells.length, 3 + Math.floor(Math.random() * 3));
+
+            // Shuffle ceiling cells to get random spawn positions
+            for (let i = emptyCeilingCells.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              const temp = emptyCeilingCells[i];
+              emptyCeilingCells[i] = emptyCeilingCells[j];
+              emptyCeilingCells[j] = temp;
+            }
+
+            // SMART CLUSTER SPAWNING: Choose a primary color and secondary color for drop groupings
+            const colors: Color[] = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+            const primaryColor = colors[Math.floor(Math.random() * colors.length)];
+            const secondaryColor = colors[Math.floor(Math.random() * colors.length)];
+
+            for (let k = 0; k < spawnCount; k++) {
+              const cell = emptyCeilingCells[k];
+              const newId = `spawned_${Date.now()}_${k}_${Math.floor(Math.random() * 1000)}`;
+              // 70% chance to spawn same primary color (produces awesome cluster matches!)
+              const color = Math.random() > 0.3 ? primaryColor : secondaryColor;
+              const newCube: MovableCube = {
+                id: newId,
+                color,
+                icons: ['dot', 'dot', 'dot', 'dot', 'dot', 'dot'],
+                position: cell,
+                isLocked: false,
+                socketId: null
+              };
+
+              this.state.cubes.set(newId, newCube);
+              this.grid.setCell(cell, { type: 'movable', cubeId: newId, socketId: null });
+              this.cubeRenderer.addCubeMesh(newCube);
+            }
+
+            // Resolve slides and locks immediately for the newly spawned cubes!
+            currentSlides = resolveSlides(this.state, this.grid);
+            currentLocks = resolveSocketLocks(this.state, this.grid);
+            if (currentSlides.length > 0 || currentLocks.length > 0) {
+              continue;
+            }
+          }
+        }
+
+        // No matches left and no spawning to do, stable!
         break;
       }
     }
-
-    // Check win
-    const won = checkWinCondition(this.state);
-    if (won) {
-      this.state.isComplete = true;
-      await new Promise(r => setTimeout(r, 400));
-      this.handleWin();
-    }
-
-    this.updateUI();
-    this.locked = false;
   }
 
   // ── Undo ──────────────────────────────────────────────────
@@ -370,6 +483,7 @@ export class GameController {
 
     this.glassRenderer.animateRotation(rotationAxis, rotationAngle, 300).then(() => {
       this.gravityArrow.updateGravity(this.state.gravity);
+      this.particles.setGravity(this.state.gravity);
       this.updateUI();
       this.locked = false;
     });
@@ -395,6 +509,7 @@ export class GameController {
     // Reset glass pivot rotation to identity
     this.glassRenderer.pivot.quaternion.identity();
     this.gravityArrow.updateGravity(this.state.gravity);
+    this.particles.setGravity(this.state.gravity);
 
     // Also reset locked cube materials
     this.cubeRenderer.dispose();
