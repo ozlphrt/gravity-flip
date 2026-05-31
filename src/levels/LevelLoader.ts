@@ -20,6 +20,7 @@ import level002 from './data/level_002.json';
 import level003 from './data/level_003.json';
 import level004 from './data/level_004.json';
 import level005 from './data/level_005.json';
+import level006 from './data/level_006.json';
 
 const LEVEL_REGISTRY: Record<string, LevelDefinition> = {
   level_001: level001 as LevelDefinition,
@@ -27,9 +28,10 @@ const LEVEL_REGISTRY: Record<string, LevelDefinition> = {
   level_003: level003 as LevelDefinition,
   level_004: level004 as LevelDefinition,
   level_005: level005 as LevelDefinition,
+  level_006: level006 as LevelDefinition,
 };
 
-export const LEVEL_ORDER = ['level_001'];
+export const LEVEL_ORDER = ['level_001', 'level_002', 'level_003', 'level_004', 'level_005', 'level_006'];
 
 export function getLevelIds(): string[] {
   return LEVEL_ORDER;
