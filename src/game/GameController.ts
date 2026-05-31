@@ -55,11 +55,23 @@ export class GameController {
   private elModalStars!: HTMLElement;
   private elModalMoves!: HTMLElement;
 
+  private userInteracted = false;
+
   constructor(scene: SceneManager, audio: AudioManager) {
     this.scene = scene;
     this.audio = audio;
     this.progress = new ProgressManager();
     this.undo = new UndoSystem();
+
+    const setInteracted = () => {
+      this.userInteracted = true;
+      window.removeEventListener('click', setInteracted);
+      window.removeEventListener('keydown', setInteracted);
+      window.removeEventListener('touchstart', setInteracted);
+    };
+    window.addEventListener('click', setInteracted, { passive: true });
+    window.addEventListener('keydown', setInteracted, { passive: true });
+    window.addEventListener('touchstart', setInteracted, { passive: true });
   }
 
   // ── Initialization ────────────────────────────────────────
@@ -326,7 +338,7 @@ export class GameController {
           this.cubeRenderer.animateLock(lock);
           this.socketRenderer.flashLock(cube.socketId!);
           try {
-            if (navigator.vibrate) navigator.vibrate(40);
+            if (this.userInteracted && navigator.vibrate) navigator.vibrate(40);
           } catch (e) {}
 
           const mesh = this.cubeRenderer.getMesh(lock.cubeId);
@@ -578,7 +590,7 @@ export class GameController {
   private handleWin(): void {
     // Haptic
     try {
-      if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
+      if (this.userInteracted && navigator.vibrate) navigator.vibrate([50, 30, 80]);
     } catch (e) {}
 
     // Get level optimal moves (would need level def — use stored metadata)
