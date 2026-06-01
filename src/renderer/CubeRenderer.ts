@@ -36,7 +36,7 @@ const COLOR_SYMBOLS: Record<Color, string> = {
   purple: 'minus',
 };
 
-function createSymbolTexture(colorName: Color, symbol: string, theme: 'classic' | 'symbol'): THREE.CanvasTexture {
+function createSymbolTexture(colorName: Color, symbol: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 128;
   canvas.height = 128;
@@ -46,30 +46,16 @@ function createSymbolTexture(colorName: Color, symbol: string, theme: 'classic' 
   const hexColor = COLOR_MAP[colorName] ?? 0xffffff;
 
   // Background style
-  if (theme === 'classic') {
-    ctx.fillStyle = '#' + hexColor.toString(16).padStart(6, '0');
-    ctx.fillRect(0, 0, 128, 128);
-    // Draw subtle border
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(6, 6, 116, 116);
+  ctx.fillStyle = '#' + hexColor.toString(16).padStart(6, '0');
+  ctx.fillRect(0, 0, 128, 128);
+  // Draw subtle border
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(6, 6, 116, 116);
 
-    // Subtle white inner sign
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-  } else {
-    // White theme
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 128, 128);
-    // Draw subtle grey border
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(6, 6, 116, 116);
-
-    // Colored sign
-    ctx.strokeStyle = '#' + hexColor.toString(16).padStart(6, '0');
-    ctx.fillStyle = '#' + hexColor.toString(16).padStart(6, '0');
-  }
+  // Subtle white inner sign
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
 
   // Draw Symbol
   ctx.lineWidth = 10;
@@ -140,7 +126,6 @@ export class CubeRenderer {
   private pivot: THREE.Group;
   private anim: AnimationManager;
   private gridOffset: THREE.Vector3;
-  private currentTheme: 'classic' | 'symbol' = 'classic';
 
   constructor(_scene: THREE.Scene, pivot: THREE.Group, anim: AnimationManager, gridSize: Vec3) {
     this.pivot = pivot;
@@ -171,11 +156,11 @@ export class CubeRenderer {
     const geo = new RoundedBoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, 5, 0.08);
     const hexColor = COLOR_MAP[cube.color] ?? 0xffffff;
     const symbol = COLOR_SYMBOLS[cube.color] || 'dot';
-    const tex = createSymbolTexture(cube.color, symbol, this.currentTheme);
+    const tex = createSymbolTexture(cube.color, symbol);
 
     // Premium solid glossy plastic domino tile material with dynamic canvas textures
     const mat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(this.currentTheme === 'symbol' ? 0xffffff : hexColor),
+      color: new THREE.Color(hexColor),
       map: tex,
       roughness: 0.12, // Low roughness for beautiful shiny highlights
       metalness: 0.0,  // Pure shiny plastic domino tile material
@@ -191,26 +176,6 @@ export class CubeRenderer {
     this.pivot.add(mesh);
     this.meshes.set(cube.id, mesh);
     return mesh;
-  }
-
-  updateTheme(theme: 'classic' | 'symbol', cubes: Map<string, MovableCube>): void {
-    this.currentTheme = theme;
-    for (const [cubeId, mesh] of this.meshes.entries()) {
-      const cube = cubes.get(cubeId);
-      if (!cube) continue;
-
-      const symbol = COLOR_SYMBOLS[cube.color] || 'dot';
-      const tex = createSymbolTexture(cube.color, symbol, theme);
-
-      const oldMat = mesh.material as THREE.MeshStandardMaterial;
-      if (oldMat.map) {
-        oldMat.map.dispose();
-      }
-
-      oldMat.map = tex;
-      oldMat.color.setHex(theme === 'symbol' ? 0xffffff : (COLOR_MAP[cube.color] ?? 0xffffff));
-      oldMat.needsUpdate = true;
-    }
   }
   getMesh(cubeId: string): THREE.Mesh | undefined {
     return this.meshes.get(cubeId);
@@ -340,10 +305,10 @@ export class CubeRenderer {
       const geo = new RoundedBoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, 5, 0.08);
       const hexColor = COLOR_MAP[cube.color] ?? 0xffffff;
       const symbol = COLOR_SYMBOLS[cube.color] || 'dot';
-      const tex = createSymbolTexture(cube.color, symbol, this.currentTheme);
+      const tex = createSymbolTexture(cube.color, symbol);
 
       const mat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(this.currentTheme === 'symbol' ? 0xffffff : hexColor),
+        color: new THREE.Color(hexColor),
         map: tex,
         transparent: true,
         opacity: 0.22,

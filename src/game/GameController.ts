@@ -56,18 +56,12 @@ export class GameController {
   private elModalMoves!: HTMLElement;
 
   private userInteracted = false;
-  private currentTheme: 'classic' | 'symbol' = 'classic';
 
   constructor(scene: SceneManager, audio: AudioManager) {
     this.scene = scene;
     this.audio = audio;
     this.progress = new ProgressManager();
     this.undo = new UndoSystem();
-
-    const savedTheme = localStorage.getItem('gravity-flip-theme') as any;
-    if (savedTheme === 'classic' || savedTheme === 'symbol') {
-      this.currentTheme = savedTheme;
-    }
 
     const setInteracted = () => {
       this.userInteracted = true;
@@ -138,7 +132,6 @@ export class GameController {
     this.cubeRenderer = new CubeRenderer(
       this.scene.scene, this.glassRenderer.pivot, this.scene.anim, state.gridSize
     );
-    this.cubeRenderer.updateTheme(this.currentTheme, state.cubes);
     this.scene.updateCameraFocus(state.gridSize);
     this.socketRenderer = new SocketRenderer(this.glassRenderer.pivot);
     this.blockerRenderer = new BlockerRenderer(this.glassRenderer.pivot);
@@ -652,21 +645,6 @@ export class GameController {
 
     document.getElementById('btn-next-level')?.addEventListener('click', () => this.nextLevel());
     document.getElementById('btn-replay')?.addEventListener('click', () => this.replayLevel());
-
-    const themeBtn = document.getElementById('btn-theme');
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        const nextTheme = this.currentTheme === 'classic' ? 'symbol' : 'classic';
-        this.currentTheme = nextTheme;
-        localStorage.setItem('gravity-flip-theme', nextTheme);
-        this.cubeRenderer.updateTheme(nextTheme, this.state.cubes);
-        
-        // Update button icon: classic theme (colored cubes) shows eye, symbol theme (white cubes with symbols) shows palette
-        themeBtn.textContent = nextTheme === 'classic' ? '👁️' : '🎨';
-      });
-      // Initial text content
-      themeBtn.textContent = this.currentTheme === 'classic' ? '👁️' : '🎨';
-    }
   }
 
   private updateUI(): void {
