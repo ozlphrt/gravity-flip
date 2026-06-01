@@ -150,16 +150,16 @@ export class AudioManager {
       const freqBoom = 130 * Math.exp(-t * 20) + 30;
       const boom = Math.sin(2 * Math.PI * freqBoom * t);
       
-      // Mix high-freq spike, low-pass noise, and gentle thump (scaled down to be extremely soft and whisper-quiet)
+      // Mix high-freq spike, low-pass noise, and gentle thump (balanced halfway for a perfect audible but non-distracting pop)
       data[i] = (
-        envBlast * rawNoise * 0.003 +
-        envNoise * lpNoise * 0.02 +
-        envBoom * boom * 0.01
+        envBlast * rawNoise * 0.022 +
+        envNoise * lpNoise * 0.18 +
+        envBoom * boom * 0.06
       );
       
-      // Satisfying soft clipping threshold (lowered from 0.05 to 0.015)
-      if (data[i] > 0.015) data[i] = 0.015;
-      else if (data[i] < -0.015) data[i] = -0.015;
+      // Satisfying soft clipping threshold (set to 0.075)
+      if (data[i] > 0.075) data[i] = 0.075;
+      else if (data[i] < -0.075) data[i] = -0.075;
     }
     return buf;
   }
