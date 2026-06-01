@@ -78,7 +78,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = 'd730258';
+  const CLIENT_BUILD = '13095e7';
   const versionBadge = document.getElementById('app-version');
   if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
 
@@ -133,8 +133,12 @@ async function main() {
   setInterval(checkVersion, 60000);
   // ────────────────────────────────────────────────────────────────────
 
-  // Remove loading screen
-  document.getElementById('loading')?.remove();
+  // Beautiful self-disappearing loading screen transition
+  const loadingScreen = document.getElementById('loading');
+  if (loadingScreen) {
+    loadingScreen.style.opacity = '0';
+    setTimeout(() => loadingScreen.remove(), 250);
+  }
 }
 
 main().catch(console.error);

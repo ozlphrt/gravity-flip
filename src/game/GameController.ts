@@ -46,14 +46,14 @@ export class GameController {
   private locked = false; // input lock during animation
 
   // UI element references
-  private elMoveCount!: HTMLElement;
-  private elProgress!: HTMLElement;
+  private elMoveCount!: HTMLElement | null;
+  private elProgress!: HTMLElement | null;
   private elGravityLabel!: HTMLElement | null;
-  private elUndoBtn!: HTMLElement;
-  private elLevelTitle!: HTMLElement;
-  private elModal!: HTMLElement;
-  private elModalStars!: HTMLElement;
-  private elModalMoves!: HTMLElement;
+  private elUndoBtn!: HTMLElement | null;
+  private elLevelTitle!: HTMLElement | null;
+  private elModal!: HTMLElement | null;
+  private elModalStars!: HTMLElement | null;
+  private elModalMoves!: HTMLElement | null;
 
   private userInteracted = false;
 
@@ -635,14 +635,14 @@ export class GameController {
   // ── UI ───────────────────────────────────────────────────
 
   private bindUI(): void {
-    this.elMoveCount = document.getElementById('move-count')!;
-    this.elProgress = document.getElementById('level-progress')!;
+    this.elMoveCount = document.getElementById('move-count');
+    this.elProgress = document.getElementById('level-progress');
     this.elGravityLabel = document.getElementById('gravity-label');
-    this.elUndoBtn = document.getElementById('btn-undo')!;
-    this.elLevelTitle = document.getElementById('level-title')!;
-    this.elModal = document.getElementById('modal-complete')!;
-    this.elModalStars = document.getElementById('modal-stars')!;
-    this.elModalMoves = document.getElementById('modal-moves')!;
+    this.elUndoBtn = document.getElementById('btn-undo');
+    this.elLevelTitle = document.getElementById('level-title');
+    this.elModal = document.getElementById('modal-complete');
+    this.elModalStars = document.getElementById('modal-stars');
+    this.elModalMoves = document.getElementById('modal-moves');
 
     document.getElementById('btn-next-level')?.addEventListener('click', () => this.nextLevel());
     document.getElementById('btn-replay')?.addEventListener('click', () => this.replayLevel());
