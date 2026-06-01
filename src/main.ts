@@ -44,6 +44,33 @@ async function main() {
   // Start render loop
   scene.startLoop();
 
+  // ── PWA / iOS Safari Viewport Height Fix ─────────────────────────────
+  // In iOS standalone (PWA) mode, CSS vh/dvh can report the wrong height
+  // at startup. We imperatively set #app's height using the real pixel
+  // measurement and re-apply it on every resize / orientation change.
+  function applyViewportHeight() {
+    const appEl = document.getElementById('app');
+    if (!appEl) return;
+    // Use innerHeight which is always the correct available pixel height
+    const h = window.innerHeight;
+    appEl.style.height = h + 'px';
+    // Trigger Three.js resize so the canvas matches the new dimensions
+    scene.onResize();
+  }
+
+  // Apply immediately, then again after a brief delay to catch PWA
+  // deferred layout (iOS defers the safe-area insets until after paint)
+  applyViewportHeight();
+  setTimeout(applyViewportHeight, 100);
+  setTimeout(applyViewportHeight, 300);
+
+  window.addEventListener('resize', applyViewportHeight, { passive: true });
+  window.addEventListener('orientationchange', () => {
+    // Orientation changes need extra time for the viewport to settle
+    setTimeout(applyViewportHeight, 200);
+  }, { passive: true });
+  // ────────────────────────────────────────────────────────────────────
+
   // Remove loading screen
   document.getElementById('loading')?.remove();
 }
