@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // main.ts — entry point
 // ============================================================
 import { SceneManager } from './renderer/SceneManager';
@@ -79,7 +79,7 @@ async function main() {
 
   // ── Version Verification Flow ───────────────────────────────────────
   const CLIENT_VERSION = '1.0.0';
-  const CLIENT_BUILD = 1;
+  const CLIENT_BUILD = 25;
   const versionBadge = document.getElementById('app-version');
   if (versionBadge) versionBadge.textContent = `v${CLIENT_VERSION} (build ${CLIENT_BUILD})`;
 

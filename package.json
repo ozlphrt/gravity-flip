@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "powershell -ExecutionPolicy Bypass -File scripts/prebuild.ps1",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
