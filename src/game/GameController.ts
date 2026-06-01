@@ -50,7 +50,8 @@ export class GameController {
   private elProgress!: HTMLElement | null;
   private elGravityLabel!: HTMLElement | null;
   private elUndoBtn!: HTMLElement | null;
-  private elLevelTitle!: HTMLElement | null;
+  private elLevelNumber!: HTMLElement | null;
+  private elLevelColors!: HTMLElement | null;
   private elModal!: HTMLElement | null;
   private elModalStars!: HTMLElement | null;
   private elModalMoves!: HTMLElement | null;
@@ -669,7 +670,8 @@ export class GameController {
     this.elProgress = document.getElementById('level-progress');
     this.elGravityLabel = document.getElementById('gravity-label');
     this.elUndoBtn = document.getElementById('btn-undo');
-    this.elLevelTitle = document.getElementById('level-title');
+    this.elLevelNumber = document.getElementById('level-number');
+    this.elLevelColors = document.getElementById('level-colors');
     this.elModal = document.getElementById('modal-complete');
     this.elModalStars = document.getElementById('modal-stars');
     this.elModalMoves = document.getElementById('modal-moves');
@@ -683,9 +685,20 @@ export class GameController {
     if (this.elProgress) this.elProgress.textContent = `${this.state.lockedCount}/${this.state.totalRequired}`;
     if (this.elGravityLabel) this.elGravityLabel.textContent = this.gravityLabel(this.state.gravity);
     if (this.elUndoBtn) this.elUndoBtn.classList.toggle('disabled', !this.undo.canUndo);
-    if (this.elLevelTitle) {
+    
+    if (this.elLevelNumber) {
       const num = LEVEL_ORDER.indexOf(this.currentLevelId) + 1;
-      this.elLevelTitle.textContent = `Level ${num}`;
+      this.elLevelNumber.textContent = num < 10 ? `0${num}` : `${num}`;
+    }
+
+    if (this.elLevelColors && this.state.allowedColors) {
+      this.elLevelColors.innerHTML = '';
+      for (const color of this.state.allowedColors) {
+        const dot = document.createElement('span');
+        dot.className = `color-dot color-${color}`;
+        dot.title = `${color.toUpperCase()} CUBE`;
+        this.elLevelColors.appendChild(dot);
+      }
     }
   }
 

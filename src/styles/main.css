@@ -108,31 +108,59 @@ html, body {
   background: radial-gradient(ellipse at 50% 20%, #0d1b33 0%, var(--bg) 70%);
 }
 
-/* ── Floating Level Indicator ───────────────────────────── */
-.level-indicator {
+/* ── Stylish Top-Left HUD ───────────────────────────── */
+.level-hud-container {
   position: absolute;
-  top: max(16px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
+  top: max(20px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
   z-index: 10;
-  padding: 6px 16px;
-  background: rgba(14, 20, 32, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  pointer-events: none;
   font-family: var(--font);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+}
+
+.level-number-display {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 0.9;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.level-label-display {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 1px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
-  text-shadow: none;
-  backdrop-filter: blur(8px);
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.level-colors-display {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 5px;
+  margin-top: 6px;
 }
+
+.color-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease;
+}
+
+/* Palette matching exactly the in-game desaturated matte colors */
+.color-dot.color-red    { background-color: #d65a62; }
+.color-dot.color-blue   { background-color: #5b8aae; }
+.color-dot.color-yellow { background-color: #ddb04c; }
+.color-dot.color-green  { background-color: #5c9c8e; }
+.color-dot.color-purple { background-color: #8c7bb5; }
+.color-dot.color-orange { background-color: #cd7958; }
 
 .stat-badge {
   display: flex;
