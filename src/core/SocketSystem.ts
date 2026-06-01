@@ -52,9 +52,7 @@ export function resolveSocketLocks(
  * All required sockets must be occupied.
  */
 export function checkWinCondition(state: GameState): boolean {
-  // Win when only a single cube is left!
-  // Level 6 (Sandbox) is endless.
-  if (state.levelId === 'level_006') return false;
+  // Win when only a single cube (or no cubes) is left!
   return state.cubes.size <= 1;
 }
 

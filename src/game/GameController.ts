@@ -91,7 +91,6 @@ export class GameController {
     await this.loadAndBuildLevel(levelId);
     this.bindUI();
     this.updateUI();
-    this.showTutorialHint(levelId);
 
     // Automatically trigger tumbling physics on level load without waiting for player swipe!
     const initialSlides = resolveSlides(this.state, this.grid);
@@ -605,7 +604,7 @@ export class GameController {
 
     this.showModal(this.state.moveCount, stars);
 
-    // Auto-advance to next level after 2 seconds without requiring user input
+    // Auto-advance to next level after 1 second without requiring user input
     setTimeout(() => {
       if (this.elModal) {
         this.elModal.style.opacity = '0';
@@ -626,7 +625,7 @@ export class GameController {
           await this.init(LEVEL_ORDER[0]);
         }
       }, 300);
-    }, 2000);
+    }, 1000);
   }
 
   private showModal(moves: number, stars: number): void {
@@ -634,6 +633,13 @@ export class GameController {
     const starStr = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     if (this.elModalStars) this.elModalStars.textContent = starStr;
     if (this.elModalMoves) this.elModalMoves.textContent = `${moves}`;
+
+    const subtitleEl = this.elModal.querySelector('.modal-subtitle');
+    if (subtitleEl) {
+      const num = LEVEL_ORDER.indexOf(this.currentLevelId) + 1;
+      subtitleEl.innerHTML = `Level <span class="level-number">${num}</span> Cleared`;
+    }
+
     this.elModal.style.opacity = '1';
     this.elModal.classList.remove('hidden');
   }
@@ -692,22 +698,6 @@ export class GameController {
     return `GRAVITY: ${labels[`${g.axis}${g.sign}`] ?? '?'}`;
   }
 
-  private showTutorialHint(levelId: string): void {
-    const hintEl = document.getElementById('tutorial-hint');
-    if (!hintEl) return;
-    const hints: Record<string, string> = {
-      level_001: 'Swipe or tap screen quadrants to rotate! Hold for preview.',
-      level_002: 'Each cube must find its matching socket. Think about the order!',
-    };
-    const hint = hints[levelId];
-    if (hint) {
-      hintEl.textContent = hint;
-      hintEl.classList.remove('hidden');
-      setTimeout(() => hintEl.classList.add('hidden'), 4000);
-    } else {
-      hintEl.classList.add('hidden');
-    }
-  }
 
   // ── Dispose ───────────────────────────────────────────────
   private disposeMethods = ['glassRenderer', 'cubeRenderer', 'socketRenderer', 'blockerRenderer'] as const;

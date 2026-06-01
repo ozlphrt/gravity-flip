@@ -115,21 +115,20 @@ html, body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  padding: 10px 24px;
-  background: rgba(10, 13, 20, 0.85);
-  border: 1px solid rgba(0, 229, 255, 0.2);
-  border-radius: 20px;
+  padding: 6px 16px;
+  background: rgba(14, 20, 32, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
   font-family: var(--font);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #00e5ff;
-  text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
-  backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: none;
+  backdrop-filter: blur(8px);
   box-shadow: 
-    0 4px 24px rgba(0, 0, 0, 0.45),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    0 4px 16px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -194,25 +193,33 @@ html, body {
 /* ── Tutorial Hint ──────────────────────────────────────── */
 .tutorial-hint {
   position: absolute;
-  top: 16px;
+  top: calc(max(16px, env(safe-area-inset-top)) + 68px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 229, 255, 0.1);
-  border: 1px solid var(--border-strong);
-  border-radius: 20px;
-  padding: 8px 18px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--cyan);
+  background: rgba(10, 18, 30, 0.95);
+  border: 1.5px solid rgba(0, 229, 255, 0.45);
+  border-radius: 16px;
+  padding: 12px 20px;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #00e5ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.45);
   text-align: center;
-  backdrop-filter: blur(10px);
-  white-space: nowrap;
-  animation: fadeInDown 0.4s ease, fadeOut 0.5s ease 3.5s forwards;
+  backdrop-filter: blur(12px);
+  width: 88%;
+  max-width: 440px;
+  box-sizing: border-box;
+  animation: fadeInDown 0.4s ease, fadeOut 0.5s ease 5.5s forwards;
   pointer-events: none;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.65),
+    0 0 15px rgba(0, 229, 255, 0.15);
+  z-index: 9;
 }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 @keyframes fadeOut {
@@ -515,18 +522,67 @@ html, body {
 
 /* Victory Modal specific styles — completely non-blocking HUD alert */
 #modal-complete {
-  background: transparent !important;
+  background: rgba(5, 7, 12, 0.4) !important;
   backdrop-filter: none !important;
   pointer-events: none !important;
   z-index: 99;
 }
 
 #modal-complete .modal-box {
-  pointer-events: auto !important;
-  box-shadow: 
-    0 12px 40px rgba(0, 229, 255, 0.25),
-    0 24px 60px rgba(0, 0, 0, 0.6) !important;
-  background: linear-gradient(145deg, rgba(14, 22, 40, 0.95), rgba(10, 16, 32, 0.95)) !important;
-  backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(0, 229, 255, 0.45) !important;
+  pointer-events: none !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  max-width: 320px !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: fadeInModal 0.25s ease !important;
+}
+
+#modal-complete .modal-stars {
+  font-size: 32px !important;
+  color: #ffcc00 !important;
+  text-shadow: none !important;
+  letter-spacing: 8px !important;
+  margin-bottom: 0px !important;
+  opacity: 0.95;
+}
+
+#modal-complete .modal-title {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.25em !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  text-transform: uppercase !important;
+  margin-bottom: 0px !important;
+  text-shadow: none !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+}
+
+#modal-complete .modal-subtitle {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  color: #ffffff !important;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  text-transform: uppercase !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+#modal-complete .level-number {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #00e5ff !important;
+  text-shadow: none !important;
+  line-height: 1 !important;
 }
