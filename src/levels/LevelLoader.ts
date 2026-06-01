@@ -22,25 +22,26 @@ import level004 from './data/level_004.json';
 import level005 from './data/level_005.json';
 import level006 from './data/level_006.json';
 
-const LEVEL_REGISTRY: Record<string, LevelDefinition> = {
-  level_001: level001 as LevelDefinition,
-  level_002: level002 as LevelDefinition,
-  level_003: level003 as LevelDefinition,
-  level_004: level004 as LevelDefinition,
-  level_005: level005 as LevelDefinition,
-  level_006: level006 as LevelDefinition,
-  level_007: level001 as LevelDefinition,
-  level_008: level001 as LevelDefinition,
-  level_009: level001 as LevelDefinition,
-  level_010: level001 as LevelDefinition,
-};
+const LEVEL_REGISTRY: Record<string, LevelDefinition> = {};
+export const LEVEL_ORDER: string[] = [];
 
-export const LEVEL_ORDER = [
-  'level_001', 'level_002', 'level_003',
-  'level_004', 'level_005', 'level_006',
-  'level_007', 'level_008', 'level_009',
-  'level_010'
-];
+// Programmatically register levels 1 to 50
+for (let i = 1; i <= 50; i++) {
+  const pad = String(i).padStart(3, '0');
+  const levelId = `level_${pad}`;
+  LEVEL_ORDER.push(levelId);
+
+  // Assign original definitions to 1-6, fallback template definition to others
+  if (i === 1) LEVEL_REGISTRY[levelId] = level001 as LevelDefinition;
+  else if (i === 2) LEVEL_REGISTRY[levelId] = level002 as LevelDefinition;
+  else if (i === 3) LEVEL_REGISTRY[levelId] = level003 as LevelDefinition;
+  else if (i === 4) LEVEL_REGISTRY[levelId] = level004 as LevelDefinition;
+  else if (i === 5) LEVEL_REGISTRY[levelId] = level005 as LevelDefinition;
+  else if (i === 6) LEVEL_REGISTRY[levelId] = level006 as LevelDefinition;
+  else {
+    LEVEL_REGISTRY[levelId] = level001 as LevelDefinition;
+  }
+}
 
 export function getLevelIds(): string[] {
   return LEVEL_ORDER;
@@ -111,6 +112,61 @@ export function loadLevel(
     gridSize = { x: 4, y: 4, z: 4 };
     allowedColors = ['red', 'blue', 'yellow'];
     cubeCount = 24;
+  } else {
+    // Levels 11 to 50 - procedural generation
+    const levelNum = parseInt(levelId.replace('level_', ''), 10);
+    
+    // Grid size, color variety, and cube count progression:
+    if (levelNum === 50) {
+      // Grand finale: massive 5x5x5, all 6 colors, very satisfying density!
+      gridSize = { x: 5, y: 5, z: 5 };
+      allowedColors = ['red', 'blue', 'yellow', 'green', 'orange', 'purple'];
+      cubeCount = 72;
+    } else if (levelNum % 10 === 0) {
+      // Relaxing victory lap every 10 levels (levels 20, 30, 40)
+      gridSize = { x: 4, y: 4, z: 4 };
+      const maxColors = Math.min(3 + Math.floor(levelNum / 20), 5);
+      allowedColors = ['red', 'blue', 'yellow', 'green', 'orange'].slice(0, maxColors) as Color[];
+      cubeCount = 24 + Math.floor(levelNum / 5);
+    } else if (levelNum < 15) {
+      // Levels 11-14: stepping stones introducing standard 4x4x4 and 5x5x5 mixes
+      gridSize = (levelNum % 2 === 0) ? { x: 5, y: 5, z: 5 } : { x: 4, y: 4, z: 4 };
+      allowedColors = ['red', 'blue', 'yellow', 'green'];
+      cubeCount = (gridSize.x === 4) ? 22 : 30;
+    } else if (levelNum < 20) {
+      // Levels 15-19: intro to orange & purple gravity weights
+      gridSize = { x: 4, y: 4, z: 4 };
+      allowedColors = ['red', 'blue', 'yellow', 'orange', 'purple'];
+      cubeCount = 28;
+    } else if (levelNum < 30) {
+      // Levels 21-29: 5x5x5 challenges with 4-5 colors
+      gridSize = { x: 5, y: 5, z: 5 };
+      const sliceEnd = Math.min(4 + (levelNum % 2), 6);
+      allowedColors = ['red', 'blue', 'yellow', 'green', 'orange', 'purple'].slice(0, sliceEnd) as Color[];
+      cubeCount = 36 + (levelNum - 20) * 2;
+    } else if (levelNum < 40) {
+      // Levels 31-39: introduce the giant 6x6x6 grid!
+      if (levelNum % 3 === 0) {
+        gridSize = { x: 6, y: 6, z: 6 };
+        allowedColors = ['red', 'blue', 'yellow', 'green', 'purple'];
+        cubeCount = 70;
+      } else {
+        gridSize = { x: 5, y: 5, z: 5 };
+        allowedColors = ['red', 'blue', 'yellow', 'green', 'orange', 'purple'];
+        cubeCount = 48 + (levelNum - 30) * 2;
+      }
+    } else {
+      // Levels 41-49: ultimate high-level challenges
+      if (levelNum % 2 === 0) {
+        gridSize = { x: 6, y: 6, z: 6 };
+        allowedColors = ['red', 'blue', 'yellow', 'green', 'orange', 'purple'];
+        cubeCount = 80;
+      } else {
+        gridSize = { x: 5, y: 5, z: 5 };
+        allowedColors = ['red', 'blue', 'yellow', 'green', 'orange', 'purple'];
+        cubeCount = 62;
+      }
+    }
   }
 
   const gridMap = new Map<string, GridCell>();
