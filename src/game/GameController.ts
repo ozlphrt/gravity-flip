@@ -65,6 +65,7 @@ export class GameController {
 
     const setInteracted = () => {
       this.userInteracted = true;
+      this.audio.resumeContext();
       window.removeEventListener('click', setInteracted);
       window.removeEventListener('keydown', setInteracted);
       window.removeEventListener('touchstart', setInteracted);
