@@ -78,9 +78,36 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = 'd348a4f';
-  const versionBadge = document.getElementById('app-version');
-  if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
+  const CLIENT_BUILD = 'c5eeeb6';
+  
+  const infoCommit = document.getElementById('info-commit');
+  if (infoCommit) infoCommit.textContent = CLIENT_BUILD;
+
+  const infoPwa = document.getElementById('info-pwa');
+  if (infoPwa) {
+    const isStandalone = (window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches;
+    infoPwa.textContent = isStandalone ? 'Standalone PWA' : 'Web Browser';
+  }
+
+  const btnInfo = document.getElementById('btn-info');
+  const btnInfoClose = document.getElementById('btn-info-close');
+  const modalInfo = document.getElementById('modal-info');
+
+  btnInfo?.addEventListener('click', () => {
+    modalInfo?.classList.remove('hidden');
+    checkVersion(); // Refresh values dynamically on open
+  });
+
+  btnInfoClose?.addEventListener('click', () => {
+    modalInfo?.classList.add('hidden');
+  });
+
+  // Clicking on background overlay closes it too
+  modalInfo?.addEventListener('click', (e) => {
+    if (e.target === modalInfo) {
+      modalInfo.classList.add('hidden');
+    }
+  });
 
   async function checkVersion() {
     try {
@@ -91,6 +118,12 @@ async function main() {
       const res = await fetch(versionUrl.href, { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
+
+      const infoBuild = document.getElementById('info-build');
+      if (infoBuild && data.build) {
+        infoBuild.textContent = String(data.build);
+      }
+
       if (data && data.hash && data.hash !== CLIENT_BUILD) {
         showUpdateModal();
       }
