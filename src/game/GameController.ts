@@ -70,10 +70,12 @@ export class GameController {
       window.removeEventListener('click', setInteracted);
       window.removeEventListener('keydown', setInteracted);
       window.removeEventListener('touchstart', setInteracted);
+      window.removeEventListener('pointerdown', setInteracted);
     };
-    window.addEventListener('click', setInteracted, { passive: true });
-    window.addEventListener('keydown', setInteracted, { passive: true });
-    window.addEventListener('touchstart', setInteracted, { passive: true });
+    window.addEventListener('click', setInteracted);
+    window.addEventListener('keydown', setInteracted);
+    window.addEventListener('touchstart', setInteracted);
+    window.addEventListener('pointerdown', setInteracted);
   }
 
   private safeVibrate(pattern: number | number[]): void {

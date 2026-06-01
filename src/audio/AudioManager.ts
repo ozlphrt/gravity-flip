@@ -27,6 +27,12 @@ export class AudioManager {
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
       }
+      // Bulletproof iOS / Safari & Chrome autoplay unlock: play a tiny silent buffer synchronously
+      const buffer = this.ctx.createBuffer(1, 1, 22050);
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.ctx.destination);
+      source.start(0);
     } catch (e) {}
   }
 
