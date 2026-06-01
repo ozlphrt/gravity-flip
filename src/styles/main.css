@@ -512,3 +512,21 @@ html, body {
   pointer-events: none;
   z-index: 15;
 }
+
+/* Victory Modal specific styles — completely non-blocking HUD alert */
+#modal-complete {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  pointer-events: none !important;
+  z-index: 99;
+}
+
+#modal-complete .modal-box {
+  pointer-events: auto !important;
+  box-shadow: 
+    0 12px 40px rgba(0, 229, 255, 0.25),
+    0 24px 60px rgba(0, 0, 0, 0.6) !important;
+  background: linear-gradient(145deg, rgba(14, 22, 40, 0.95), rgba(10, 16, 32, 0.95)) !important;
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(0, 229, 255, 0.45) !important;
+}

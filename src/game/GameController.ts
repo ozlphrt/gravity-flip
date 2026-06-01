@@ -604,6 +604,29 @@ export class GameController {
     const stars = this.progress.recordCompletion(this.currentLevelId, this.state.moveCount, 99);
 
     this.showModal(this.state.moveCount, stars);
+
+    // Auto-advance to next level after 2 seconds without requiring user input
+    setTimeout(() => {
+      if (this.elModal) {
+        this.elModal.style.opacity = '0';
+        this.elModal.style.transition = 'opacity 0.3s ease';
+      }
+      setTimeout(async () => {
+        if (this.elModal) {
+          this.elModal.classList.add('hidden');
+          this.elModal.style.opacity = '';
+        }
+        
+        const idx = LEVEL_ORDER.indexOf(this.currentLevelId);
+        const nextId = LEVEL_ORDER[idx + 1];
+        if (nextId) {
+          await this.nextLevel();
+        } else {
+          // Restart or loop back to Level 1
+          await this.init(LEVEL_ORDER[0]);
+        }
+      }, 300);
+    }, 2000);
   }
 
   private showModal(moves: number, stars: number): void {
@@ -611,6 +634,7 @@ export class GameController {
     const starStr = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     if (this.elModalStars) this.elModalStars.textContent = starStr;
     if (this.elModalMoves) this.elModalMoves.textContent = `${moves}`;
+    this.elModal.style.opacity = '1';
     this.elModal.classList.remove('hidden');
   }
 
