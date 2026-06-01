@@ -122,6 +122,7 @@ export interface GameState {
   lockedCount: number;
   totalRequired: number;
   isComplete: boolean;
+  allowedColors: Color[];
 }
 
 // ── Undo ──────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 // GameController — orchestrates input → simulation → animation → UI
 // ============================================================
 import * as THREE from 'three';
-import type { GameState, SwipeDirection, GravityDir, MovableCube, Color } from '../core/types';
+import type { GameState, SwipeDirection, GravityDir, MovableCube } from '../core/types';
 import { Grid } from '../core/Grid';
 import {
   applySwipeToOrientation, cloneMatrix
@@ -432,7 +432,7 @@ export class GameController {
             }
 
             // SMART CLUSTER SPAWNING: Choose a primary color and secondary color for drop groupings
-            const colors: Color[] = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+            const colors = this.state.allowedColors || ['red', 'blue'];
             const primaryColor = colors[Math.floor(Math.random() * colors.length)];
             const secondaryColor = colors[Math.floor(Math.random() * colors.length)];
 

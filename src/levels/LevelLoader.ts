@@ -173,6 +173,7 @@ export function loadLevel(
     lockedCount: 0,
     totalRequired: 0,
     isComplete: false,
+    allowedColors,
   };
 
   return { state, grid };
