@@ -37,7 +37,7 @@ async function main() {
   if (muteBtn) {
     muteBtn.addEventListener('click', () => {
       const muted = audio.toggleMute();
-      muteBtn.textContent = muted ? '🔇' : '🔊';
+      muteBtn.classList.toggle('muted', muted);
     });
   }
 
@@ -78,7 +78,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = 'a5c8be6';
+  const CLIENT_BUILD = 'd348a4f';
   const versionBadge = document.getElementById('app-version');
   if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
 

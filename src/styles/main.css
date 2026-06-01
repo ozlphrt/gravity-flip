@@ -264,25 +264,42 @@ html, body {
 /* ── Mute Button ────────────────────────────────────────── */
 .mute-btn {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(14, 20, 32, 0.8);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  font-size: 16px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  right: max(20px, env(safe-area-inset-right));
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: var(--transition);
-  backdrop-filter: blur(8px);
+  z-index: 15;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 0;
+}
+
+.mute-btn svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.mute-btn .mute-line {
+  display: none;
+}
+
+.mute-btn.muted .mute-line {
+  display: block;
+}
+
+.mute-btn.muted .wave {
+  display: none;
 }
 
 .mute-btn:hover {
-  border-color: var(--border-strong);
-  background: rgba(0, 229, 255, 0.1);
+  color: #ffffff;
 }
 
 /* ── D-Pad Controls ─────────────────────────────────────── */
