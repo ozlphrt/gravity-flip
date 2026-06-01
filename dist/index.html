@@ -9,6 +9,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
     <link rel="icon" href="./favicon.png" type="image/png" />
+    <script>
+      // Clear out any old PWA Service Workers that are trying to load non-existent cached assets
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+    </script>
     <script type="module" crossorigin src="/gravity-flip/assets/index-CsAXiZHT.js"></script>
     <link rel="stylesheet" crossorigin href="/gravity-flip/assets/index-CqaOyxfe.css">
   </head>
@@ -90,6 +100,6 @@
         </div>
       </div>
     </div>
-
+
   </body>
 </html>
