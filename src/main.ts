@@ -78,7 +78,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = '63fd1c2';
+  const CLIENT_BUILD = '3086844';
   const versionBadge = document.getElementById('app-version');
   if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
 
