@@ -27,12 +27,120 @@ export const COLOR_PHYSICS: Record<Color, { durationMult: number, pitchOffset: n
   purple: { durationMult: 0.85, pitchOffset: 0.42, volume: 0.35 }, // Massive lead weight, very deep resonant thud
 };
 
+const COLOR_SYMBOLS: Record<Color, string> = {
+  yellow: 'star',
+  red: 'triangle',
+  green: 'plus',
+  blue: 'circle',
+  orange: 'square',
+  purple: 'minus',
+};
+
+function createSymbolTexture(colorName: Color, symbol: string, theme: 'classic' | 'symbol'): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  const hexColor = COLOR_MAP[colorName] ?? 0xffffff;
+
+  // Background style
+  if (theme === 'classic') {
+    ctx.fillStyle = '#' + hexColor.toString(16).padStart(6, '0');
+    ctx.fillRect(0, 0, 128, 128);
+    // Draw subtle border
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(6, 6, 116, 116);
+
+    // Subtle white inner sign
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  } else {
+    // White theme
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 128, 128);
+    // Draw subtle grey border
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(6, 6, 116, 116);
+
+    // Colored sign
+    ctx.strokeStyle = '#' + hexColor.toString(16).padStart(6, '0');
+    ctx.fillStyle = '#' + hexColor.toString(16).padStart(6, '0');
+  }
+
+  // Draw Symbol
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  const cx = 64;
+  const cy = 64;
+
+  if (symbol === 'circle') {
+    ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (symbol === 'triangle') {
+    ctx.moveTo(cx, cy - 24);
+    ctx.lineTo(cx - 24, cy + 20);
+    ctx.lineTo(cx + 24, cy + 20);
+    ctx.closePath();
+    ctx.stroke();
+  } else if (symbol === 'plus') {
+    ctx.moveTo(cx - 22, cy);
+    ctx.lineTo(cx + 22, cy);
+    ctx.moveTo(cx, cy - 22);
+    ctx.lineTo(cx, cy + 22);
+    ctx.stroke();
+  } else if (symbol === 'minus') {
+    ctx.moveTo(cx - 22, cy);
+    ctx.lineTo(cx + 22, cy);
+    ctx.stroke();
+  } else if (symbol === 'square') {
+    ctx.strokeRect(cx - 20, cy - 20, 40, 40);
+  } else if (symbol === 'star') {
+    const spikes = 5;
+    const outerRadius = 26;
+    const innerRadius = 11;
+    let rot = (Math.PI / 2) * 3;
+    let x = cx;
+    let y = cy;
+    const step = Math.PI / spikes;
+
+    ctx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+      x = cx + Math.cos(rot) * outerRadius;
+      y = cy + Math.sin(rot) * outerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+
+      x = cx + Math.cos(rot) * innerRadius;
+      y = cy + Math.sin(rot) * innerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+    }
+    ctx.closePath();
+    ctx.stroke();
+  } else {
+    ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export class CubeRenderer {
   private meshes: Map<string, THREE.Mesh> = new Map();
   private ghostMeshes: Map<string, THREE.Mesh> = new Map();
   private pivot: THREE.Group;
   private anim: AnimationManager;
   private gridOffset: THREE.Vector3;
+  private currentTheme: 'classic' | 'symbol' = 'classic';
 
   constructor(_scene: THREE.Scene, pivot: THREE.Group, anim: AnimationManager, gridSize: Vec3) {
     this.pivot = pivot;
@@ -62,10 +170,13 @@ export class CubeRenderer {
   addCubeMesh(cube: MovableCube): THREE.Mesh {
     const geo = new RoundedBoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, 5, 0.08);
     const hexColor = COLOR_MAP[cube.color] ?? 0xffffff;
+    const symbol = COLOR_SYMBOLS[cube.color] || 'dot';
+    const tex = createSymbolTexture(cube.color, symbol, this.currentTheme);
 
-    // Premium solid glossy plastic domino tile material (no texture warping)
+    // Premium solid glossy plastic domino tile material with dynamic canvas textures
     const mat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(hexColor),
+      color: new THREE.Color(this.currentTheme === 'symbol' ? 0xffffff : hexColor),
+      map: tex,
       roughness: 0.12, // Low roughness for beautiful shiny highlights
       metalness: 0.0,  // Pure shiny plastic domino tile material
     });
@@ -82,6 +193,25 @@ export class CubeRenderer {
     return mesh;
   }
 
+  updateTheme(theme: 'classic' | 'symbol', cubes: Map<string, MovableCube>): void {
+    this.currentTheme = theme;
+    for (const [cubeId, mesh] of this.meshes.entries()) {
+      const cube = cubes.get(cubeId);
+      if (!cube) continue;
+
+      const symbol = COLOR_SYMBOLS[cube.color] || 'dot';
+      const tex = createSymbolTexture(cube.color, symbol, theme);
+
+      const oldMat = mesh.material as THREE.MeshStandardMaterial;
+      if (oldMat.map) {
+        oldMat.map.dispose();
+      }
+
+      oldMat.map = tex;
+      oldMat.color.setHex(theme === 'symbol' ? 0xffffff : (COLOR_MAP[cube.color] ?? 0xffffff));
+      oldMat.needsUpdate = true;
+    }
+  }
   getMesh(cubeId: string): THREE.Mesh | undefined {
     return this.meshes.get(cubeId);
   }
@@ -209,8 +339,12 @@ export class CubeRenderer {
 
       const geo = new RoundedBoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE, 5, 0.08);
       const hexColor = COLOR_MAP[cube.color] ?? 0xffffff;
+      const symbol = COLOR_SYMBOLS[cube.color] || 'dot';
+      const tex = createSymbolTexture(cube.color, symbol, this.currentTheme);
+
       const mat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(hexColor),
+        color: new THREE.Color(this.currentTheme === 'symbol' ? 0xffffff : hexColor),
+        map: tex,
         transparent: true,
         opacity: 0.22,
         roughness: 0.4,
