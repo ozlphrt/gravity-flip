@@ -80,8 +80,8 @@ export class AudioManager {
     for (let i = 0; i < data.length; i++) {
       const t = i / sr;
       const env = Math.exp(-t * 15) * (1 - Math.exp(-t * 45));
-      // Soft, very quiet low-pass filtered noise swish (lowered from 0.045 to 0.018)
-      data[i] = env * (Math.random() * 2 - 1) * 0.018;
+      // Soft, very quiet low-pass filtered noise swish (lowered from 0.018 to 0.004 for a whisper-quiet effect)
+      data[i] = env * (Math.random() * 2 - 1) * 0.004;
     }
     return buf;
   }
@@ -144,16 +144,16 @@ export class AudioManager {
       const freqBoom = 130 * Math.exp(-t * 20) + 30;
       const boom = Math.sin(2 * Math.PI * freqBoom * t);
       
-      // Mix high-freq spike, low-pass noise, and gentle thump (scaled down to be softer and less loud/distracting)
+      // Mix high-freq spike, low-pass noise, and gentle thump (scaled down to be extremely soft and whisper-quiet)
       data[i] = (
-        envBlast * rawNoise * 0.015 +
-        envNoise * lpNoise * 0.12 +
-        envBoom * boom * 0.05
+        envBlast * rawNoise * 0.003 +
+        envNoise * lpNoise * 0.02 +
+        envBoom * boom * 0.01
       );
       
-      // Satisfying soft clipping threshold (lowered from 0.15 to 0.05)
-      if (data[i] > 0.05) data[i] = 0.05;
-      else if (data[i] < -0.05) data[i] = -0.05;
+      // Satisfying soft clipping threshold (lowered from 0.05 to 0.015)
+      if (data[i] > 0.015) data[i] = 0.015;
+      else if (data[i] < -0.015) data[i] = -0.015;
     }
     return buf;
   }
