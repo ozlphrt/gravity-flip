@@ -23,9 +23,16 @@
           }
         });
       }
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          keys.forEach(function(key) {
+            caches.delete(key);
+          });
+        });
+      }
     </script>
-    <script type="module" crossorigin src="/gravity-flip/assets/index-CsVzpHfY.js"></script>
-    <link rel="stylesheet" crossorigin href="/gravity-flip/assets/index-BqvGyPKt.css">
+    <script type="module" crossorigin src="/gravity-flip/assets/index-CjRr_GUu.js"></script>
+    <link rel="stylesheet" crossorigin href="/gravity-flip/assets/index-SUWqsnMr.css">
   </head>
   <body>
     <!-- Loading screen -->
