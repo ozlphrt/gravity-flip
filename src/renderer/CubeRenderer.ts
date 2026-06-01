@@ -10,12 +10,12 @@ import { AnimationManager, Easings } from './AnimationManager';
 const CUBE_SIZE = 0.94;
 
 const COLOR_MAP: Record<Color, number> = {
-  red:    0xe63946, // Ruby Red
-  blue:   0x0077b6, // Sapphire Blue
-  yellow: 0xffb703, // Amber Gold
-  green:  0x2a9d8f, // Emerald Green
-  purple: 0x8338ec, // Amethyst Purple
-  orange: 0xe76f51, // Burnt Copper
+  red:    0xd65a62, // Softer crimson/coral (gentle on eyes)
+  blue:   0x5b8aae, // Dusty steel blue
+  yellow: 0xddb04c, // Soft golden wheat
+  green:  0x5c9c8e, // Matte sage/mint green
+  purple: 0x8c7bb5, // Dusty lavender
+  orange: 0xcd7958, // Warm terracotta/peach
 };
 
 export const COLOR_PHYSICS: Record<Color, { durationMult: number, pitchOffset: number, volume: number }> = {

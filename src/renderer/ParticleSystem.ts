@@ -5,12 +5,12 @@ import * as THREE from 'three';
 import type { Color } from '../core/types';
 
 const COLOR_MAP: Record<Color, number> = {
-  red:    0xff3344,
-  blue:   0x2288ff,
-  yellow: 0xffcc00,
-  green:  0x22dd66,
-  purple: 0xaa44ff,
-  orange: 0xff7722,
+  red:    0xd65a62,
+  blue:   0x5b8aae,
+  yellow: 0xddb04c,
+  green:  0x5c9c8e,
+  purple: 0x8c7bb5,
+  orange: 0xcd7958,
 };
 
 interface Particle {
