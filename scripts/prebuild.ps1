@@ -28,12 +28,12 @@ try {
         # Read with UTF-8 to preserve all special characters
         $content = [System.IO.File]::ReadAllText($mainTsPath, [System.Text.Encoding]::UTF8)
         
-        # Match "const CLIENT_BUILD = <number>;" and replace with current count
-        $updatedContent = $content -replace 'const CLIENT_BUILD = \d+;', "const CLIENT_BUILD = $commitCount;"
+        # Match "const CLIENT_BUILD = '...';" and replace with current commit hash
+        $updatedContent = $content -replace "const CLIENT_BUILD = '.*?';", "const CLIENT_BUILD = '$commitHash';"
         
         # Write back pristine UTF-8 without BOM
         [System.IO.File]::WriteAllText($mainTsPath, $updatedContent, [System.Text.Encoding]::UTF8)
-        Write-Host "Auto-Versioning: Injected build $commitCount into $mainTsPath"
+        Write-Host "Auto-Versioning: Injected commit hash $commitHash into $mainTsPath"
     }
 }
 catch {

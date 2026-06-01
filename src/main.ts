@@ -78,8 +78,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_VERSION = '1.0.0';
-  const CLIENT_BUILD = 26;
+  const CLIENT_BUILD = 'd56e79e';
   const versionBadge = document.getElementById('app-version');
   if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
 
@@ -88,7 +87,7 @@ async function main() {
       const res = await fetch(`./version.json?t=${Date.now()}`);
       if (!res.ok) return;
       const data = await res.json();
-      if (data && data.version && (data.version !== CLIENT_VERSION || data.build !== CLIENT_BUILD)) {
+      if (data && data.hash && data.hash !== CLIENT_BUILD) {
         showUpdateModal();
       }
     } catch (e) {
