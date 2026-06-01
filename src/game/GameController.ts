@@ -603,42 +603,71 @@ export class GameController {
     // Get level optimal moves (would need level def — use stored metadata)
     const stars = this.progress.recordCompletion(this.currentLevelId, this.state.moveCount, 99);
 
-    this.showModal(this.state.moveCount, stars);
+    const idx = LEVEL_ORDER.indexOf(this.currentLevelId);
+    const nextId = LEVEL_ORDER[idx + 1];
 
-    // Auto-advance to next level after 1 second without requiring user input
-    setTimeout(() => {
-      if (this.elModal) {
-        this.elModal.style.opacity = '0';
-        this.elModal.style.transition = 'opacity 0.3s ease';
-      }
-      setTimeout(async () => {
+    this.showModal(this.state.moveCount, stars, nextId);
+
+    if (nextId) {
+      // Auto-advance to next level after 1 second without requiring user input
+      setTimeout(() => {
         if (this.elModal) {
-          this.elModal.classList.add('hidden');
-          this.elModal.style.opacity = '';
+          this.elModal.style.opacity = '0';
+          this.elModal.style.transition = 'opacity 0.3s ease';
         }
-        
-        const idx = LEVEL_ORDER.indexOf(this.currentLevelId);
-        const nextId = LEVEL_ORDER[idx + 1];
-        if (nextId) {
+        setTimeout(async () => {
+          if (this.elModal) {
+            this.elModal.classList.add('hidden');
+            this.elModal.style.opacity = '';
+          }
           await this.nextLevel();
-        } else {
-          // Restart or loop back to Level 1
-          await this.init(LEVEL_ORDER[0]);
-        }
-      }, 300);
-    }, 1000);
+        }, 300);
+      }, 1000);
+    }
   }
 
-  private showModal(moves: number, stars: number): void {
+  private showModal(moves: number, stars: number, nextId?: string): void {
     if (!this.elModal) return;
     const starStr = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     if (this.elModalStars) this.elModalStars.textContent = starStr;
     if (this.elModalMoves) this.elModalMoves.textContent = `${moves}`;
 
+    const titleEl = this.elModal.querySelector('.modal-title');
     const subtitleEl = this.elModal.querySelector('.modal-subtitle');
-    if (subtitleEl) {
-      const num = LEVEL_ORDER.indexOf(this.currentLevelId) + 1;
-      subtitleEl.innerHTML = `Level <span class="level-number">${num}</span> Cleared`;
+
+    if (!nextId) {
+      // Game completed!
+      if (titleEl) titleEl.textContent = 'VICTORY!';
+      if (subtitleEl) subtitleEl.innerHTML = 'All Levels Cleared';
+
+      // Show a minimalist Replay button on the final victory modal
+      let replayBtn = document.getElementById('btn-victory-replay');
+      if (!replayBtn) {
+        replayBtn = document.createElement('button');
+        replayBtn.id = 'btn-victory-replay';
+        replayBtn.className = 'btn-secondary info-close-btn';
+        replayBtn.style.marginTop = '12px';
+        replayBtn.textContent = 'REPLAY GAME';
+        replayBtn.addEventListener('click', () => {
+          this.progress.reset();
+          document.getElementById('btn-victory-replay')?.remove();
+          this.elModal?.classList.add('hidden');
+          this.elModal!.style.pointerEvents = 'none';
+          this.init(LEVEL_ORDER[0]);
+        });
+        this.elModal.querySelector('.modal-box')?.appendChild(replayBtn);
+      }
+
+      this.elModal.style.pointerEvents = 'auto';
+    } else {
+      if (titleEl) titleEl.textContent = 'SUCCESS';
+      if (subtitleEl) {
+        const num = LEVEL_ORDER.indexOf(this.currentLevelId) + 1;
+        subtitleEl.innerHTML = `Level <span class="level-number">${num}</span> Cleared`;
+      }
+
+      document.getElementById('btn-victory-replay')?.remove();
+      this.elModal.style.pointerEvents = 'none';
     }
 
     this.elModal.style.opacity = '1';
