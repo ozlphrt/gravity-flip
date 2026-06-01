@@ -163,8 +163,8 @@ export class SceneManager {
     const floorMat = new THREE.ShadowMaterial({ opacity: 0.32 }); // Gorgeous, subtle contact shadows
     this.floorPlane = new THREE.Mesh(floorGeo, floorMat);
     this.floorPlane.rotation.x = -Math.PI / 2;
-    // Position it just underneath the bottom bounds of the transparent glass box Y coordinate
-    this.floorPlane.position.set(cx, -0.68, cz);
+    // Position it exactly touching the bottom bounds of the lowest cubes Y coordinate
+    this.floorPlane.position.set(cx, -0.5, cz);
     this.floorPlane.receiveShadow = true;
     this.scene.add(this.floorPlane);
   }
