@@ -107,10 +107,10 @@ export function loadLevel(
     allowedColors = ['red', 'blue', 'yellow', 'green'];
     cubeCount = 48;
   } else if (levelId === 'level_010') {
-    // Mega sandbox level: 6x6x6 grid with all 6 desaturated colors!
-    gridSize = { x: 6, y: 6, z: 6 };
-    allowedColors = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
-    cubeCount = 90;
+    // Ultimate relaxing victory lap: 4x4x4 grid, 3 colors, 24 cubes!
+    gridSize = { x: 4, y: 4, z: 4 };
+    allowedColors = ['red', 'blue', 'yellow'];
+    cubeCount = 24;
   }
 
   const gridMap = new Map<string, GridCell>();

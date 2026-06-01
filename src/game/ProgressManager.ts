@@ -68,7 +68,7 @@ export class ProgressManager {
   }
 
   getCurrentLevel(): string {
-    return 'level_001';
+    return this.data.currentLevel || 'level_001';
   }
 
   reset(): void {
