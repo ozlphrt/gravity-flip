@@ -78,7 +78,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = 'ce3e170';
+  const CLIENT_BUILD = '6ccf22c';
   const versionBadge = document.getElementById('app-version');
   if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
 
@@ -121,7 +121,9 @@ async function main() {
         } catch (e) {}
       }
       // Force absolute clean network fetch using a timestamp cache-buster query parameter
-      window.location.href = window.location.origin + window.location.pathname + '?t=' + Date.now();
+      const destUrl = new URL(window.location.href);
+      destUrl.searchParams.set('t', Date.now().toString());
+      window.location.href = destUrl.href;
     });
 
     btnLater?.addEventListener('click', () => {
