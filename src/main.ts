@@ -77,6 +77,57 @@ async function main() {
   }, { passive: true });
   // ────────────────────────────────────────────────────────────────────
 
+  // ── Version Verification Flow ───────────────────────────────────────
+  const CLIENT_VERSION = '1.0.0';
+  const versionBadge = document.getElementById('app-version');
+  if (versionBadge) versionBadge.textContent = `v${CLIENT_VERSION}`;
+
+  async function checkVersion() {
+    try {
+      const res = await fetch(`./version.json?t=${Date.now()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.version && data.version !== CLIENT_VERSION) {
+        showUpdateModal();
+      }
+    } catch (e) {
+      console.warn('Failed to check version:', e);
+    }
+  }
+
+  function showUpdateModal() {
+    const modal = document.getElementById('modal-update');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const btnNow = document.getElementById('btn-update-now');
+    const btnLater = document.getElementById('btn-update-later');
+
+    btnNow?.addEventListener('click', async () => {
+      if ('caches' in window) {
+        try {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        } catch (e) {}
+      }
+      if ('serviceWorker' in navigator) {
+        try {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        } catch (e) {}
+      }
+      window.location.reload();
+    });
+
+    btnLater?.addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+  }
+
+  checkVersion();
+  setInterval(checkVersion, 60000);
+  // ────────────────────────────────────────────────────────────────────
+
   // Remove loading screen
   document.getElementById('loading')?.remove();
 }

@@ -12,6 +12,7 @@ export class SceneManager {
 
   private _rafId: number = -1;
   private onFrameCallbacks: ((dt: number) => void)[] = [];
+  private floorPlane: THREE.Mesh | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     // ── Renderer ──────────────────────────────────────────
@@ -148,6 +149,24 @@ export class SceneManager {
 
     this.camera.position.set(cx, cy + maxDim * 0.65, cz + distanceScale);
     this.camera.lookAt(cx, cy, cz);
+
+    // Clean up old base shadow plane
+    if (this.floorPlane) {
+      this.scene.remove(this.floorPlane);
+      this.floorPlane.geometry.dispose();
+      (this.floorPlane.material as THREE.Material).dispose();
+      this.floorPlane = null;
+    }
+
+    // Add a beautiful, subtle, transparent shadow-receiving floor plane at the base of the cube grid
+    const floorGeo = new THREE.PlaneGeometry(80, 80);
+    const floorMat = new THREE.ShadowMaterial({ opacity: 0.32 }); // Gorgeous, subtle contact shadows
+    this.floorPlane = new THREE.Mesh(floorGeo, floorMat);
+    this.floorPlane.rotation.x = -Math.PI / 2;
+    // Position it just underneath the bottom bounds of the transparent glass box Y coordinate
+    this.floorPlane.position.set(cx, -0.68, cz);
+    this.floorPlane.receiveShadow = true;
+    this.scene.add(this.floorPlane);
   }
 
   /** Camera micro-shake effect */

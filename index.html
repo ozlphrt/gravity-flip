@@ -91,6 +91,8 @@
 
 
 
+      <!-- Version Badge -->
+      <div id="app-version" class="version-badge">v1.0.0</div>
     </div>
 
     <!-- ── Level Complete Modal ───────────────────────────── -->
@@ -107,6 +109,21 @@
         <div class="modal-actions">
           <button id="btn-next-level" class="btn-primary">Next Level →</button>
           <button id="btn-replay" class="btn-secondary">Play Again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Update Validation Modal ───────────────────────── -->
+    <div id="modal-update" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-stars" style="color: var(--cyan); text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);">⚡</div>
+        <h2 class="modal-title">UPDATE AVAILABLE</h2>
+        <p style="margin-bottom: 24px; color: var(--text-dim); font-size: 13px; text-align: center;">
+          A new version of Gravity Flip is available. Update now to get the latest levels and improvements!
+        </p>
+        <div class="modal-actions">
+          <button id="btn-update-now" class="btn-primary">Update Now</button>
+          <button id="btn-update-later" class="btn-secondary">Later</button>
         </div>
       </div>
     </div>
