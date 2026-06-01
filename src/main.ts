@@ -79,9 +79,9 @@ async function main() {
 
   // ── Version Verification Flow ───────────────────────────────────────
   const CLIENT_VERSION = '1.0.0';
-  const CLIENT_BUILD = 25;
+  const CLIENT_BUILD = 26;
   const versionBadge = document.getElementById('app-version');
-  if (versionBadge) versionBadge.textContent = `v${CLIENT_VERSION} (build ${CLIENT_BUILD})`;
+  if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
 
   async function checkVersion() {
     try {
