@@ -48,26 +48,32 @@ async function main() {
   // In iOS standalone (PWA) mode, CSS vh/dvh can report the wrong height
   // at startup. We imperatively set #app's height using the real pixel
   // measurement and re-apply it on every resize / orientation change.
+  let lastHeight = 0;
   function applyViewportHeight() {
     const appEl = document.getElementById('app');
     if (!appEl) return;
     // Use innerHeight which is always the correct available pixel height
     const h = window.innerHeight;
+    if (h === lastHeight) return; // Performance gate: skip redundant renders
+    lastHeight = h;
     appEl.style.height = h + 'px';
     // Trigger Three.js resize so the canvas matches the new dimensions
     scene.onResize();
   }
 
-  // Apply immediately, then again after a brief delay to catch PWA
-  // deferred layout (iOS defers the safe-area insets until after paint)
+  // Poll the height frequently during the first 5 seconds of cold start to catch PWA safe-area layout shifts
   applyViewportHeight();
-  setTimeout(applyViewportHeight, 100);
-  setTimeout(applyViewportHeight, 300);
+  const startupInterval = setInterval(applyViewportHeight, 100);
+  setTimeout(() => clearInterval(startupInterval), 5000);
 
   window.addEventListener('resize', applyViewportHeight, { passive: true });
   window.addEventListener('orientationchange', () => {
-    // Orientation changes need extra time for the viewport to settle
-    setTimeout(applyViewportHeight, 200);
+    // Orientation changes can be slow, so poll frequently for 1.2 seconds afterwards
+    let count = 0;
+    const orientationInterval = setInterval(() => {
+      applyViewportHeight();
+      if (++count > 6) clearInterval(orientationInterval);
+    }, 200);
   }, { passive: true });
   // ────────────────────────────────────────────────────────────────────
 
