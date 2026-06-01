@@ -78,13 +78,17 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = '02e0db3';
+  const CLIENT_BUILD = 'afa594c';
   const versionBadge = document.getElementById('app-version');
   if (versionBadge) versionBadge.textContent = `Commit ${CLIENT_BUILD}`;
 
   async function checkVersion() {
     try {
-      const res = await fetch(`./version.json?t=${Date.now()}`);
+      // Create a robust absolute URL relative to the current window location to support iOS standalone PWA path scopes
+      const versionUrl = new URL('version.json', window.location.href);
+      versionUrl.searchParams.set('t', Date.now().toString());
+
+      const res = await fetch(versionUrl.href, { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.hash && data.hash !== CLIENT_BUILD) {
