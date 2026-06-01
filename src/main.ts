@@ -79,15 +79,16 @@ async function main() {
 
   // ── Version Verification Flow ───────────────────────────────────────
   const CLIENT_VERSION = '1.0.0';
+  const CLIENT_BUILD = 1;
   const versionBadge = document.getElementById('app-version');
-  if (versionBadge) versionBadge.textContent = `v${CLIENT_VERSION}`;
+  if (versionBadge) versionBadge.textContent = `v${CLIENT_VERSION} (build ${CLIENT_BUILD})`;
 
   async function checkVersion() {
     try {
       const res = await fetch(`./version.json?t=${Date.now()}`);
       if (!res.ok) return;
       const data = await res.json();
-      if (data && data.version && data.version !== CLIENT_VERSION) {
+      if (data && data.version && (data.version !== CLIENT_VERSION || data.build !== CLIENT_BUILD)) {
         showUpdateModal();
       }
     } catch (e) {
