@@ -78,7 +78,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = 'a103524';
+  const CLIENT_BUILD = '55e1d5d';
   
   const infoCommit = document.getElementById('info-commit');
   if (infoCommit) infoCommit.textContent = CLIENT_BUILD;
@@ -166,6 +166,14 @@ async function main() {
 
   checkVersion();
   setInterval(checkVersion, 60000);
+
+  // Listen for background Service Worker activation updates to prompt the user
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('SW: Controller changed, prompting update validation.');
+      showUpdateModal();
+    });
+  }
   // ────────────────────────────────────────────────────────────────────
 
   // Beautiful self-disappearing loading screen transition
