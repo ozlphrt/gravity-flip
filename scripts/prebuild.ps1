@@ -13,7 +13,7 @@ try {
         $versionJsonPath = Join-Path (Get-Location) "public/version.json"
     }
     $jsonContent = @{
-        version = "1.0.0"
+        version = "1.5.0"
         build = [int]$commitCount
         hash = $commitHash
     } | ConvertTo-Json -Compress

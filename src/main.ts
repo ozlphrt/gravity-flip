@@ -78,7 +78,7 @@ async function main() {
   // ────────────────────────────────────────────────────────────────────
 
   // ── Version Verification Flow ───────────────────────────────────────
-  const CLIENT_BUILD = '035531b';
+  const CLIENT_BUILD = 'a103524';
   
   const infoCommit = document.getElementById('info-commit');
   if (infoCommit) infoCommit.textContent = CLIENT_BUILD;
