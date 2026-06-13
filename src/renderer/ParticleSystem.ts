@@ -173,6 +173,52 @@ export class ParticleSystem {
     if (!this.isUpdating) this.startUpdate();
   }
 
+  /** Luminescent trail behind sliding cubes */
+  spawnSlideTrail(position: THREE.Vector3, color: Color): void {
+    const hexColor = COLOR_MAP[color] ?? 0xffffff;
+    const count = 1;
+
+    for (let i = 0; i < count; i++) {
+      const geo = SHARED_SPHERE_GEO;
+      const size = 0.04 + Math.random() * 0.05;
+      const mat = new THREE.MeshStandardMaterial({
+        color: hexColor,
+        emissive: new THREE.Color(hexColor),
+        emissiveIntensity: 1.0,
+        transparent: true,
+        opacity: 0.65,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.scale.set(size, size, size);
+
+      mesh.position.set(
+        position.x + (Math.random() - 0.5) * 0.25,
+        position.y + (Math.random() - 0.5) * 0.25,
+        position.z + (Math.random() - 0.5) * 0.25
+      );
+      this.pivot.add(mesh);
+
+      const speed = 0.002 + Math.random() * 0.004;
+      const vel = new THREE.Vector3(
+        (Math.random() - 0.5) * 0.005,
+        (Math.random() - 0.5) * 0.005,
+        (Math.random() - 0.5) * 0.005
+      );
+      const gAxis = this.currentGravity.axis;
+      const gSign = this.currentGravity.sign;
+      vel[gAxis] += -gSign * speed;
+
+      this.particles.push({
+        mesh,
+        velocity: vel,
+        life: 0,
+        maxLife: 250 + Math.random() * 150,
+      });
+    }
+
+    if (!this.isUpdating) this.startUpdate();
+  }
+
   private startUpdate(): void {
     this.isUpdating = true;
     let last = performance.now();

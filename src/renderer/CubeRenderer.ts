@@ -6,6 +6,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import type { MovableCube, Color, Vec3 } from '../core/types';
 import type { SlidePayload, LockPayload } from '../core/types';
 import { AnimationManager, Easings } from './AnimationManager';
+import { ParticleSystem } from './ParticleSystem';
 
 const CUBE_SIZE = 0.94;
 
@@ -125,11 +126,13 @@ export class CubeRenderer {
   private ghostMeshes: Map<string, THREE.Mesh> = new Map();
   private pivot: THREE.Group;
   private anim: AnimationManager;
+  private particles?: ParticleSystem;
   private gridOffset: THREE.Vector3;
 
-  constructor(_scene: THREE.Scene, pivot: THREE.Group, anim: AnimationManager, gridSize: Vec3) {
+  constructor(_scene: THREE.Scene, pivot: THREE.Group, anim: AnimationManager, gridSize: Vec3, particles?: ParticleSystem) {
     this.pivot = pivot;
     this.anim = anim;
+    this.particles = particles;
     this.gridOffset = new THREE.Vector3(
       (gridSize.x - 1) / 2,
       (gridSize.y - 1) / 2,
@@ -202,7 +205,12 @@ export class CubeRenderer {
         [toPos.x, toPos.y, toPos.z],
         duration,
         Easings.easeInCubic,
-        ([x, y, z]) => { mesh.position.set(x, y, z); },
+        ([x, y, z]) => { 
+          mesh.position.set(x, y, z); 
+          if (this.particles && Math.random() > 0.35) {
+            this.particles.spawnSlideTrail(mesh.position, color);
+          }
+        },
         resolve
       );
     });

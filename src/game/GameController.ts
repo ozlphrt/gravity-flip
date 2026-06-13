@@ -132,14 +132,14 @@ export class GameController {
     this.glassRenderer = new GlassCubeRenderer(
       this.scene.scene, state.gridSize, this.scene.anim
     );
+    this.particles = new ParticleSystem(this.scene.scene, this.glassRenderer.pivot);
+    this.particles.setGravity(state.gravity);
     this.cubeRenderer = new CubeRenderer(
-      this.scene.scene, this.glassRenderer.pivot, this.scene.anim, state.gridSize
+      this.scene.scene, this.glassRenderer.pivot, this.scene.anim, state.gridSize, this.particles
     );
     this.scene.updateCameraFocus(state.gridSize);
     this.socketRenderer = new SocketRenderer(this.glassRenderer.pivot);
     this.blockerRenderer = new BlockerRenderer(this.glassRenderer.pivot);
-    this.particles = new ParticleSystem(this.scene.scene, this.glassRenderer.pivot);
-    this.particles.setGravity(state.gravity);
     this.gravityArrow = new GravityArrow(this.scene.scene, this.scene.anim);
 
     // Initialize visuals
@@ -297,6 +297,7 @@ export class GameController {
     let currentLocks = initialLocks;
     let anyExplosion = false;
     let hasSpawnedThisTurn = false;
+    let comboCount = 0;
 
     while (true) {
       // 1. Animate current slide batch
@@ -369,6 +370,16 @@ export class GameController {
       const popped = resolveColorMatches(this.state, this.grid);
       if (popped.length > 0) {
         anyExplosion = true;
+        comboCount++;
+
+        // Progressive screen shake on pop cascades
+        this.scene.shake(0.012 * comboCount, 250);
+
+        // Spawn combo text alert on cascade >= 2
+        if (comboCount >= 2) {
+          this.spawnComboAlert(comboCount);
+        }
+
         // Play bubble pop sound
         this.audio.play('pop');
 
@@ -742,6 +753,26 @@ export class GameController {
     return `GRAVITY: ${labels[`${g.axis}${g.sign}`] ?? '?'}`;
   }
 
+  private spawnComboAlert(combo: number): void {
+    const alert = document.createElement('div');
+    alert.className = 'combo-alert';
+    
+    let title = `COMBO x${combo}!`;
+    if (combo >= 4) title = `ULTRA CASCADE x${combo}!!`;
+    else if (combo >= 3) title = `MEGA COMBO x${combo}!`;
+
+    alert.innerHTML = `
+      <div class="combo-title">${title}</div>
+      <div class="combo-subtitle">+${combo * 100} PTS</div>
+    `;
+
+    document.getElementById('app')?.appendChild(alert);
+
+    // Remove from DOM after CSS animation completes (900ms)
+    setTimeout(() => {
+      alert.remove();
+    }, 900);
+  }
 
   // ── Dispose ───────────────────────────────────────────────
   private disposeMethods = ['glassRenderer', 'cubeRenderer', 'socketRenderer', 'blockerRenderer'] as const;
